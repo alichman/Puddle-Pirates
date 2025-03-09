@@ -45,7 +45,6 @@ class _MyHomePageState extends State<MyHomePage> {
         }),
         selectedIndex: currentPageIndex,
         destinations: [
-          // Add your playgrounds here
           NavigationDestination(icon: Icon(Icons.home), label: "Place 1"),
           NavigationDestination(icon: Icon(Icons.abc), label: "Place 2"),
           NavigationDestination(icon: Icon(Icons.build), label: "Place 3"),
