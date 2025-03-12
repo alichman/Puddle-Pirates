@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:puddle_pirates/battleship.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,11 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          
-        ),
-      ),
+      body:[Column(), Column(), BattleshipPage()][currentPageIndex],
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int i) => setState(() {
           currentPageIndex = i;
@@ -47,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
         destinations: [
           NavigationDestination(icon: Icon(Icons.home), label: "Place 1"),
           NavigationDestination(icon: Icon(Icons.abc), label: "Place 2"),
-          NavigationDestination(icon: Icon(Icons.build), label: "Place 3"),
+          NavigationDestination(icon: Icon(Icons.build), label: "Andrew"),
         ],
       ),
     );
