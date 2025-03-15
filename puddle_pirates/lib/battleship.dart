@@ -6,6 +6,9 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:puddle_pirates/states.dart';
+
 
 enum ShipType {
   destroyer,
@@ -15,7 +18,7 @@ enum ShipType {
   minesweeper,
 }
 
-enum ShotResult {
+enum Shot {
   hit,
   miss
 }
@@ -30,6 +33,15 @@ class Coord {
   String toString() {
     return '($x, $y)';
   }
+
+  void validate () {
+    if (x > 9 ||  x < 0) {
+      throw Exception('Coordinate error: x $x is out of range');
+    }
+    if (y > 9 || y < 0) {
+      throw Exception('Coordinate error: y $y is out of range');
+    }
+  }
 }
 
 const shipLengthMap = {
@@ -40,6 +52,15 @@ const shipLengthMap = {
   ShipType.minesweeper: 2
 };
 
+// Temporary display of ships.
+const Map<ShipType, Color> shipColorMap = {
+  ShipType.carrier: Color.fromARGB(255, 0, 42, 1),
+  ShipType.battleship: Color.fromARGB(255, 11, 87, 12),
+  ShipType.submarine: Color.fromARGB(255, 28, 111, 29),
+  ShipType.destroyer: Color.fromARGB(255, 54, 144, 55),
+  ShipType.minesweeper: Color.fromARGB(255, 81, 193, 83),
+};
+
 class Ship {
   ShipType type;
   Coord base;
@@ -47,18 +68,43 @@ class Ship {
 
   Ship(this.type, this.base, this.vert);
 
+  List<Coord> getOccupiedSquares() {
+    final List<Coord> result = [];
+    int x = base.x, y = base.y;
+    for (int i=0; i < shipLengthMap[type]!; i++) {
+      result.add(Coord(x, y));
+      if(vert) {y ++;} else {x++;}
+    }
+    return result;
+  }
+
   @override
   String toString() {
     return '$type at $base (${vert ? 'v' : 'h'})';
   }
 }
 
-class Grid {
-  // 10x10 null grid
+// Used for selectors based on all grid content.
+class GridContent {
+  final Ship? ship;
+  final Shot? shot;
+
+  GridContent(this.ship, this.shot);
+}
+
+class Grid extends ChangeNotifier{
+  /* Grid containing all of the battleship info.
+    This grid store two 10x10 grids - one holding all ships,
+    and one holding all attacks from the opponent.
+    Additionally, ships will be stored in a list, and
+    can be used to select their occupied area on the grid.
+  */
+
+  // 10x10 null grids
   final List<List<Ship?>> _shipGrid = List.generate(10, (_) => List.filled(10, null));
   final List<Ship> _ships = [];
-  
-  // Returns ship
+  final List<List<Shot?>> _hitsGrid = List.generate(10, (_) => List.filled(10, null));
+
   Ship? getShipFromSquare (Coord square) {
     if (square.x > 10 || square.x < 0 ) throw Exception('Grid Error: x=${square.x} is out of bounds.');
     if (square.y > 10 || square.y < 0 ) throw Exception('Grid Error: y=${square.y} is out of bounds.');
@@ -67,21 +113,15 @@ class Grid {
 
   // Checks line for any ships.
   bool isLineEmpty(Coord base, int len, bool vert) {
-    if (vert) {
-      for (int y = base.y; y < base.y + len - 1; y++) {
-        if(getShipFromSquare(Coord(base.x, y)) != null) return false;
-      }
-    } else {
-      for (int x = base.x; x < base.x + len - 1; x++) {
-        if(getShipFromSquare(Coord(x, base.y)) != null) return false;
-      }
+    int x = base.x, y = base.y;
+    for (int i=0; i < len; i++) {
+      if(getShipFromSquare(Coord(x, y)) != null) return false;
+      if(vert) {y ++;} else {x++;}
     }
-
     return true;
   }
 
   void addShip (ShipType type, Coord base, bool vert) {
-    print('Adding $type at $base');
     // Validate position
     if (!isLineEmpty(base, shipLengthMap[type]!, vert)) throw Exception('Grid Error: Line not empty');
     
@@ -90,21 +130,50 @@ class Grid {
     final shipLen = shipLengthMap[type]!;
 
     int x = base.x, y = base.y;
-    for (int i=0; i < shipLen - 1; i++) {
+    for (int i=0; i < shipLen; i++) {
       _shipGrid[x][y] = ship;
       if(vert) {y ++;} else {x++;}
     }
     _ships.add(ship);
-    print('success $ship');
+    notifyListeners();
+  }
+
+  void removeShip (Ship? ship) {
+    if (ship == null) {
+      return;
+    }
+    for (Coord s in ship.getOccupiedSquares()){
+      _shipGrid[s.x][ s.y] = null;
+    }
+    _ships.remove(ship);
+    notifyListeners();
+  }
+
+  void attack (Coord square) {
+    square.validate();
+
+    // Don't allow attacks on previous attacked squares.
+    if (_hitsGrid[square.x][square.y] != null) throw Exception("Grid Error: Can't attack non-null square");
+    
+    _hitsGrid[square.x][square.y] = getShipFromSquare(square) == null ? Shot.miss : Shot.hit;
+    notifyListeners();
+  }
+
+  // Sets hit values without additional logic. Not to be used for attacking.
+  void setHits (List<Coord> squares, Shot? value) {
+    for (Coord s in squares) {
+      s.validate();
+      _hitsGrid[s.x][s.y] = value;
+    }
+    notifyListeners();
   }
 }
 
-// Global grid for any ongoing game.
-// TODO: move to state once that's well defined.
-Grid currentGameGrid = Grid();
-
 // Display section
 // Battleship graphics will be handled here
+// Might be good to move this when we have proper UI.
+
+
 
 // Temporary full page.
 class BattleshipPage extends StatefulWidget {
@@ -115,33 +184,58 @@ class BattleshipPage extends StatefulWidget {
 }
 
 class _BattleshipPageState extends State<BattleshipPage> {
+  // Temporary test player
+  Player player = Player('test 1');
+
+  /* Horrific mode handling. Worst code ever written. 
+  I'm glad this will be deleted as soon as UI is done.
+  This only exists to test different functions.
+      0 - add a horizontal submarine
+      1 - add a vertical carrier
+      2 - delete ship
+      4 - Fire
+      5 - Heal ship fully
+  */
+  int mode = 0;
+  List<String> modeText = ['Add H sub',
+                          'Add V Carrier',
+                          'Delete',
+                          'Fire',
+                          'Heal'];
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
-        child: BattleshipGrid()
-      ),
-    );
+    return Column(children: [
+      Expanded(child: ChangeNotifierProvider.value(
+        value: player.grid,
+        child: Center(child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
+          child: BattleshipGrid(mode: mode)
+        ),
+      ))),
+      TextButton(onPressed: () => setState(() => mode = (mode+1) % 5), child: Text('Mode: $mode (${modeText[mode]})'))
+      ]);
   }
 }
 
 class BattleshipGrid extends StatelessWidget {
-  const BattleshipGrid({super.key});
+  final int mode;
+  const BattleshipGrid({super.key, required this.mode});
 
   static const gridSize = 10;
 
   @override
   Widget build(BuildContext context) {
     
-    Color getSquareColor(Coord square) {
-      if (currentGameGrid.getShipFromSquare(square) == null) {
-        return [const Color.fromARGB(255, 255, 187, 182), const Color.fromARGB(255, 189, 225, 255)][(square.x + square.y) % 2];
+    Color getSquareColor(int x, int y, Ship? ship) {
+      if (ship == null) {
+        return [const Color.fromARGB(255, 255, 187, 182),
+         const Color.fromARGB(255, 189, 225, 255)][(x+y) % 2];
       }
-      return Colors.green;
+      return shipColorMap[ship.type]!;
     }
 
+    // Cenetered 10x10 grid. Size is handled externally.
     return Center(child: GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
       itemCount: gridSize*gridSize,
@@ -149,16 +243,35 @@ class BattleshipGrid extends StatelessWidget {
         int y = index ~/ gridSize;
         int x = index % gridSize;
 
-        return GestureDetector(
-          onTap: () => currentGameGrid.addShip(ShipType.submarine, Coord(x, y), false),
-          child: Container(
-            color: getSquareColor(Coord(x, y)),
-            alignment: Alignment.center,
-            child: Text('$x, $y'),
-            margin: EdgeInsets.all(1),
-          )
-        );
-      },
-      ));
+        
+
+        // Each cell is its own gesture detector, and updates individually
+        // based on the corresponding grid cell's value. 
+        return Selector<Grid, GridContent?>(
+          selector: (_, grid) => GridContent(grid._shipGrid[x][y], grid._hitsGrid[x][y]) ,
+          builder: (context, content, child) {
+            final grid = context.read<Grid>();
+            final ship = content?.ship;
+            final shot = content?.shot;
+            return GestureDetector(
+              onTap: (){
+                try {
+                  if (mode == 0) {grid.addShip(ShipType.submarine, Coord(x, y), false);}
+                  else if (mode == 1) {grid.addShip(ShipType.carrier, Coord(x, y), true);}
+                  else if (mode == 2) {grid.removeShip(ship);}
+                  else if (mode == 3) {grid.attack(Coord(x, y));}
+                  else if (mode == 4) {grid.setHits(ship == null ? [] : ship.getOccupiedSquares() , null);}
+                } catch (e) {
+                  print(e);
+                }
+              },
+              child: Container(
+                color: getSquareColor(x, y, ship),
+                alignment: Alignment.center,
+                margin: EdgeInsets.all(1),
+                child: Text('${{Shot.hit: 'hit', Shot.miss: 'miss', null: ''}[shot]}', style: TextStyle(backgroundColor: Colors.white),),
+              ));
+          });
+      }));
   }
 }
