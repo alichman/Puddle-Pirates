@@ -106,6 +106,7 @@ class Grid extends ChangeNotifier{
   final List<List<Shot?>> _hitsGrid = List.generate(10, (_) => List.filled(10, null));
 
   Ship? getShipFromSquare (Coord square) {
+    square.validate();
     if (square.x > 10 || square.x < 0 ) throw Exception('Grid Error: x=${square.x} is out of bounds.');
     if (square.y > 10 || square.y < 0 ) throw Exception('Grid Error: y=${square.y} is out of bounds.');
     return _shipGrid[square.x][square.y];
@@ -171,9 +172,7 @@ class Grid extends ChangeNotifier{
 
 // Display section
 // Battleship graphics will be handled here
-// Might be good to move this when we have proper UI.
-
-
+// Basically all temporary and for refference only.
 
 // Temporary full page.
 class BattleshipPage extends StatefulWidget {
@@ -242,8 +241,6 @@ class BattleshipGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         int y = index ~/ gridSize;
         int x = index % gridSize;
-
-        
 
         // Each cell is its own gesture detector, and updates individually
         // based on the corresponding grid cell's value. 
