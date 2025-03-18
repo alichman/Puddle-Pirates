@@ -94,7 +94,7 @@ class GridContent {
 
 class Grid extends ChangeNotifier{
   /* Grid containing all of the battleship info.
-    This grid store two 10x10 grids - one holding all ships,
+    Stores two 10x10 grids - one holding all ships,
     and one holding all attacks from the opponent.
     Additionally, ships will be stored in a list, and
     can be used to select their occupied area on the grid.
@@ -105,18 +105,24 @@ class Grid extends ChangeNotifier{
   final List<Ship> _ships = [];
   final List<List<Shot?>> _hitsGrid = List.generate(10, (_) => List.filled(10, null));
 
+  // Abstracted table access
   Ship? getShipFromSquare (Coord square) {
     square.validate();
-    if (square.x > 10 || square.x < 0 ) throw Exception('Grid Error: x=${square.x} is out of bounds.');
-    if (square.y > 10 || square.y < 0 ) throw Exception('Grid Error: y=${square.y} is out of bounds.');
     return _shipGrid[square.x][square.y];
   }
 
-  // Checks line for any ships.
-  bool isLineEmpty(Coord base, int len, bool vert) {
+  Shot? getShotFromSquare (Coord square) {
+    square.validate();
+    return _hitsGrid[square.x][square.y];
+  }
+
+  // Checks line for any ships and hits, as specified by bools.
+  // Checks only ships by default.
+  bool isLineEmpty(Coord base, int len, bool vert, {bool checkShips=true, bool checkHits=false}) {
     int x = base.x, y = base.y;
     for (int i=0; i < len; i++) {
-      if(getShipFromSquare(Coord(x, y)) != null) return false;
+      if(checkShips && getShipFromSquare(Coord(x, y)) != null) return false;
+      if(checkHits && getShotFromSquare(Coord(x, y)) != null) return false;
       if(vert) {y ++;} else {x++;}
     }
     return true;
@@ -124,7 +130,7 @@ class Grid extends ChangeNotifier{
 
   void addShip (ShipType type, Coord base, bool vert) {
     // Validate position
-    if (!isLineEmpty(base, shipLengthMap[type]!, vert)) throw Exception('Grid Error: Line not empty');
+    if (!isLineEmpty(base, shipLengthMap[type]!, vert, checkHits: true)) throw Exception('Grid Error: Line not empty');
     
     // Add ship to grid and ships array
     final ship = Ship(type, base, vert);
@@ -154,7 +160,7 @@ class Grid extends ChangeNotifier{
     square.validate();
 
     // Don't allow attacks on previous attacked squares.
-    if (_hitsGrid[square.x][square.y] != null) throw Exception("Grid Error: Can't attack non-null square");
+    if (getShotFromSquare(square) != null) throw Exception("Grid Error: Can't attack non-empty square");
     
     _hitsGrid[square.x][square.y] = getShipFromSquare(square) == null ? Shot.miss : Shot.hit;
     notifyListeners();
