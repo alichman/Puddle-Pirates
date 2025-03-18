@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:puddle_pirates/card-component.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Puddle Pirates',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple), // We'll need a new theme
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple), // We'll need a new theme
         useMaterial3: true,
       ),
       home: const MyHomePage(),
@@ -34,11 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          
-        ),
-      ),
+      body: [Column(), Column(), Column(), DeckPage()][currentPageIndex],
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int i) => setState(() {
           currentPageIndex = i;
@@ -48,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
           NavigationDestination(icon: Icon(Icons.home), label: "Place 1"),
           NavigationDestination(icon: Icon(Icons.abc), label: "Place 2"),
           NavigationDestination(icon: Icon(Icons.build), label: "Place 3"),
+          NavigationDestination(icon: Icon(Icons.build), label: "Kaelem")
         ],
       ),
     );
