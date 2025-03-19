@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:puddle_pirates/states.dart';
 
 enum GameMode { twoPlayer, ai }
 
@@ -123,7 +124,11 @@ class _GameCreationScreenState extends State<GameCreationScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
-                    onPressed: () => Navigator.pushNamed(context, '/game_page'),
+                    onPressed: () {
+                      // Store name values, then navigate
+                      globalGameState.setNewPlayers(_player1Controller.text, _player2Controller.text);
+                      Navigator.pushNamed(context, '/game_page');
+                    },
                     child: const Text(
                       "Start Game",
                       style: TextStyle(fontSize: 16),
