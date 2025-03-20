@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:puddle_pirates/screens/game_setup_page.dart';
 import 'package:puddle_pirates/screens/main_menu.dart';
 import 'package:puddle_pirates/screens/game_creation.dart';
 import 'package:puddle_pirates/screens/saved_games.dart';
@@ -30,10 +32,10 @@ class PuddlePiratesApp extends StatelessWidget {
       routes: {
         '/': (context) => const MainMenu(),
         '/game_creation': (context) => const GameCreationScreen(),
+        '/game_setup_page': (context) => const GameSetupPage(),
         '/saved_games': (context) => const SavedGamesScreen(),
         '/card_library': (context) => const CardLibraryScreen(),
         '/settings': (context) => const SettingsScreen(),
-        '/game_setup_page': (context) => GameSetupPage(),
         '/game_page': (context) => const GamePage(),
       },
     );

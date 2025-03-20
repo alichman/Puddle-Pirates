@@ -54,10 +54,10 @@ const shipLengthMap = {
 
 // Temporary display of ships.
 const Map<ShipType, Color> shipColorMap = {
-  ShipType.carrier: Color.fromARGB(255, 0, 42, 1),
-  ShipType.battleship: Color.fromARGB(255, 11, 87, 12),
+  ShipType.carrier: Color.fromARGB(255, 32, 91, 15),
+  ShipType.battleship: Color.fromARGB(255, 48, 186, 50),
   ShipType.submarine: Color.fromARGB(255, 28, 111, 29),
-  ShipType.destroyer: Color.fromARGB(255, 54, 144, 55),
+  ShipType.destroyer: Color.fromARGB(255, 86, 233, 88),
   ShipType.minesweeper: Color.fromARGB(255, 81, 193, 83),
 };
 
@@ -235,8 +235,8 @@ class BattleshipGrid extends StatelessWidget {
     
     Color getSquareColor(int x, int y, Ship? ship) {
       if (ship == null) {
-        return [const Color.fromARGB(255, 255, 187, 182),
-         const Color.fromARGB(255, 189, 225, 255)][(x+y) % 2];
+        return [const Color.fromARGB(255, 15, 44, 148),
+         const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
       }
       return shipColorMap[ship.type]!;
     }

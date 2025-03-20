@@ -24,10 +24,7 @@ class GameState extends ChangeNotifier {
     cPlayer = 1 - cPlayer;
     notifyListeners();
   }
-  
 }
-
-
 
 // Will probably move this to a separate file once it grows.
 class Player {
