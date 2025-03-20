@@ -8,10 +8,10 @@ class GameCreationScreen extends StatefulWidget {
   const GameCreationScreen({super.key});
 
   @override
-  _GameCreationScreenState createState() => _GameCreationScreenState();
+  GameCreationScreenState createState() => GameCreationScreenState();
 }
 
-class _GameCreationScreenState extends State<GameCreationScreen> {
+class GameCreationScreenState extends State<GameCreationScreen> {
   GameMode _selectedMode = GameMode.twoPlayer;
   final TextEditingController _player1Controller = TextEditingController();
   final TextEditingController _player2Controller = TextEditingController();
@@ -27,8 +27,6 @@ class _GameCreationScreenState extends State<GameCreationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = Provider.of<GameState>(context, listen: false);
-
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:puddle_pirates/battleship.dart';
+import 'package:puddle_pirates/states.dart';
 
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
 
   @override
-  _GamePageState createState() => _GamePageState();
+  GamePageState createState() => GamePageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class GamePageState extends State<GamePage> {
   bool _showTurnConfirmation = false;
 
   void _showWinningPopup(BuildContext context) {

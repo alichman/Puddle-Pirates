@@ -7,7 +7,6 @@ import 'package:puddle_pirates/screens/saved_games.dart';
 import 'package:puddle_pirates/screens/card_library.dart';
 import 'package:puddle_pirates/screens/settings.dart';
 import 'package:puddle_pirates/screens/game_page.dart';
-import 'package:provider/provider.dart';
 import 'package:puddle_pirates/states.dart';
 
 void main() {
