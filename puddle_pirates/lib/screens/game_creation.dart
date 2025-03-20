@@ -127,7 +127,7 @@ class _GameCreationScreenState extends State<GameCreationScreen> {
                     onPressed: () {
                       // Store name values, then navigate
                       globalGameState.setNewPlayers(_player1Controller.text, _player2Controller.text);
-                      Navigator.pushNamed(context, '/game_page');
+                      Navigator.pushNamed(context, '/game_setup_page');
                     },
                     child: const Text(
                       "Start Game",

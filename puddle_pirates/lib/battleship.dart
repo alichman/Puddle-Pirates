@@ -224,7 +224,9 @@ class _BattleshipPageState extends State<BattleshipPage> {
 }
 
 class BattleshipGrid extends StatelessWidget {
-  const BattleshipGrid({super.key});
+  final void Function(Coord square)? callback;
+  
+  const BattleshipGrid({super.key, this.callback});
 
   static const gridSize = 10;
 
@@ -258,6 +260,9 @@ class BattleshipGrid extends StatelessWidget {
             return GestureDetector(
               onTap: (){
                 print('$x $y');
+                if (callback != null) {
+                  callback!(Coord(x, y));
+                };
               },
               child: Container(
                 color: getSquareColor(x, y, ship),
