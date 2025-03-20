@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:puddle_pirates/states.dart';
 
 enum GameMode { twoPlayer, ai }
@@ -26,6 +27,8 @@ class _GameCreationScreenState extends State<GameCreationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -125,9 +128,21 @@ class _GameCreationScreenState extends State<GameCreationScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
                     onPressed: () {
-                      // Store name values, then navigate
-                      globalGameState.setNewPlayers(_player1Controller.text, _player2Controller.text);
-                      Navigator.pushNamed(context, '/game_setup_page');
+                      final gameState = Provider.of<GameState>(context, listen: false);
+
+                        if (_selectedMode == GameMode.twoPlayer) {
+                          gameState.setNewPlayers(
+                            _player1Controller.text,
+                            _player2Controller.text,
+                          );
+                        } else if (_selectedMode == GameMode.ai) {
+                          gameState.setNewPlayers(
+                            _playerNameController.text,
+                            "AI", // Default AI name
+                          );
+                        }
+
+                        Navigator.pushNamed(context, '/game_setup_page');
                     },
                     child: const Text(
                       "Start Game",
