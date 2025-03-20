@@ -16,14 +16,16 @@ class GameSetupPage extends StatefulWidget {
 class _GameSetupState extends State<GameSetupPage> {
   bool callbackSuccess = false;
   final cPlayer = globalGameState.getCurrentPlayer();
+  // Ship types to still be created.
+  // Placed ships will be stored in the grid.
+  // Map notation to make a mutable copy.
+  final ships = ShipType.values.map((t) => t).toList(); 
+  int? selected;
+  bool vert = false;
 
   @override
   Widget build(BuildContext context) {
-    // Placed ships will be stored in the grid.
-    final ships = ShipType.values; // Ship types to still be created.
-    int? selected = null;
-    bool vert = false;
-    int shipSize = 20;
+    const shipSize = 50;
 
     return Column(
       children: [
@@ -35,34 +37,61 @@ class _GameSetupState extends State<GameSetupPage> {
               width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
               child: BattleshipGrid(callback: (square) {
                 if (selected == null) {
-                  print('none selected');
                   return;
                 }
                 // Try placing ship
                 try {
-                  cPlayer.grid.addShip(ships[selected], square, vert);
-                } catch (e) {
-                  print('haha shidiot fuck you');
-                }
-
-                setState(() => callbackSuccess = true); 
-                print('callbackSuccess set $callbackSuccess');
+                  cPlayer.grid.addShip(ships[selected!], square, vert);
+                  setState(() {
+                    callbackSuccess = true;
+                    ships.removeAt(selected!);
+                    selected = null;
+                  });
+                } catch (e) {print(e);}
               },)
             )))
         ),
         // Ship selector
         Expanded(child: Column(
-          children: ships.map((s) => SizedBox(
+          children: ships.map((s) => GestureDetector(
+            onTap: () {
+              setState(() => selected = ships.indexOf(s));
+            },
+            child: SizedBox(
             height: shipSize.toDouble(),
             width: (shipSize * shipLengthMap[s]!).toDouble(),
             child: Container(
-              color: Colors.green,
+              color: ships.indexOf(s) == selected ? const Color.fromARGB(255, 43, 99, 45) : Colors.green,
               alignment: Alignment.center,
               margin: EdgeInsets.all(1),
-            ))
-          ).toList())),
-      ]
-    );
+            )))).toList(),
+          )),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            ),
+            onPressed: () {
+              if (ships.isNotEmpty) return;
+              Navigator.pushNamed(context, '/game_page');
+            },
+            child: const Text(
+              "Continue",
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            ),
+            onPressed: () {
+              Navigator.pushNamed(context, '/game_creation');
+            },
+            child: const Text(
+              "Back to Game Creation",
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+      ]);
   }
 }
 
