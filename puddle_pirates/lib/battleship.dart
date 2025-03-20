@@ -215,7 +215,7 @@ class _BattleshipPageState extends State<BattleshipPage> {
         value: player.grid,
         child: Center(child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
-          child: BattleshipGrid(mode: mode)
+          child: BattleshipGrid()
         ),
       ))),
       TextButton(onPressed: () => setState(() => mode = (mode+1) % 5), child: Text('Mode: $mode (${modeText[mode]})'))
@@ -224,8 +224,9 @@ class _BattleshipPageState extends State<BattleshipPage> {
 }
 
 class BattleshipGrid extends StatelessWidget {
-  final int mode;
-  const BattleshipGrid({super.key, required this.mode});
+  final void Function(Coord square)? callback;
+  
+  const BattleshipGrid({super.key, this.callback});
 
   static const gridSize = 10;
 
@@ -258,15 +259,10 @@ class BattleshipGrid extends StatelessWidget {
             final shot = content?.shot;
             return GestureDetector(
               onTap: (){
-                try {
-                  if (mode == 0) {grid.addShip(ShipType.submarine, Coord(x, y), false);}
-                  else if (mode == 1) {grid.addShip(ShipType.carrier, Coord(x, y), true);}
-                  else if (mode == 2) {grid.removeShip(ship);}
-                  else if (mode == 3) {grid.attack(Coord(x, y));}
-                  else if (mode == 4) {grid.setHits(ship == null ? [] : ship.getOccupiedSquares() , null);}
-                } catch (e) {
-                  print(e);
-                }
+                print('$x $y');
+                if (callback != null) {
+                  callback!(Coord(x, y));
+                };
               },
               child: Container(
                 color: getSquareColor(x, y, ship),

@@ -28,6 +28,7 @@ class PuddlePiratesApp extends StatelessWidget {
         '/saved_games': (context) => const SavedGamesScreen(),
         '/card_library': (context) => const CardLibraryScreen(),
         '/settings': (context) => const SettingsScreen(),
+        '/game_setup_page': (context) => GameSetupPage(),
         '/game_page': (context) => const GamePage(),
       },
     );
