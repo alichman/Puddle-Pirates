@@ -26,8 +26,6 @@ class GameState extends ChangeNotifier {
   }
 }
 
-GameState globalGameState = GameState();
-
 // Will probably move this to a separate file once it grows.
 class Player {
   String name;

@@ -12,17 +12,18 @@ class GameSetupPage extends StatefulWidget {
 
 class _GameSetupState extends State<GameSetupPage> {
   bool callbackSuccess = false;
-  final cPlayer = globalGameState.getCurrentPlayer();
   // Ship types to still be created.
   // Placed ships will be stored in the grid.
   // Map notation to make a mutable copy.
-  final ships = ShipType.values.map((t) => t).toList(); 
+  List<ShipType> ships = ShipType.values.map((t) => t).toList(); 
   int? selected;
   bool isVert = false;
 
   @override
   Widget build(BuildContext context) {
     const shipSize = 45;
+    final gameState = context.watch<GameState>();
+    final cPlayer = gameState.getCurrentPlayer();
 
     return Scaffold(
       appBar: AppBar(
@@ -96,8 +97,9 @@ class _GameSetupState extends State<GameSetupPage> {
               onPressed: () {
                 if (ships.isNotEmpty) return;
                 // uses index of cPlayer to check if other player is set up.
-                if (globalGameState.cPlayer == 0) {
-                  globalGameState.toNextPlayer();
+                if (gameState.cPlayer == 0) {
+                  gameState.toNextPlayer();
+                  ships = ShipType.values.map((t) => t).toList(); 
                   return;
                 }
                 Navigator.pushNamed(context, '/game_page');
