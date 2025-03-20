@@ -16,14 +16,15 @@ class GameSetupPage extends StatefulWidget {
 class _GameSetupState extends State<GameSetupPage> {
   bool callbackSuccess = false;
   final cPlayer = globalGameState.getCurrentPlayer();
+  // Ship types to still be created.
+  // Placed ships will be stored in the grid.
+  final ships = ShipType.values; 
+  int? selected;
+  bool vert = false;
 
   @override
   Widget build(BuildContext context) {
-    // Placed ships will be stored in the grid.
-    final ships = ShipType.values; // Ship types to still be created.
-    int? selected = null;
-    bool vert = false;
-    int shipSize = 20;
+    const shipSize = 50;
 
     return Column(
       children: [
@@ -40,29 +41,34 @@ class _GameSetupState extends State<GameSetupPage> {
                 }
                 // Try placing ship
                 try {
-                  cPlayer.grid.addShip(ships[selected], square, vert);
-                } catch (e) {
-                  print('haha shidiot fuck you');
-                }
-
-                setState(() => callbackSuccess = true); 
-                print('callbackSuccess set $callbackSuccess');
+                  cPlayer.grid.addShip(ships[selected!], square, vert);
+                  setState(() {
+                    callbackSuccess = true;
+                    ships.removeAt(selected!);
+                    selected = null;
+                  }); 
+                  print('callbackSuccess set $callbackSuccess');
+                } catch (e) {print(e);}
               },)
             )))
         ),
         // Ship selector
         Expanded(child: Column(
-          children: ships.map((s) => SizedBox(
+          children: ships.map((s) => GestureDetector(
+            onTap: () { 
+              print('in here - $selected');
+              setState(() => selected = ships.indexOf(s));
+            },
+            child: SizedBox(
             height: shipSize.toDouble(),
             width: (shipSize * shipLengthMap[s]!).toDouble(),
             child: Container(
-              color: Colors.green,
+              color: ships.indexOf(s) == selected ? const Color.fromARGB(255, 43, 99, 45) : Colors.green,
               alignment: Alignment.center,
               margin: EdgeInsets.all(1),
-            ))
-          ).toList())),
-      ]
-    );
+            )))).toList(),
+          ))
+      ]);
   }
 }
 
