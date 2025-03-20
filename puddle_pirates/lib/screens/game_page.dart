@@ -37,7 +37,6 @@ class _GameSetupState extends State<GameSetupPage> {
               width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
               child: BattleshipGrid(callback: (square) {
                 if (selected == null) {
-                  print('none selected');
                   return;
                 }
                 // Try placing ship
@@ -47,8 +46,7 @@ class _GameSetupState extends State<GameSetupPage> {
                     callbackSuccess = true;
                     ships.removeAt(selected!);
                     selected = null;
-                  }); 
-                  print('callbackSuccess set $callbackSuccess');
+                  });
                 } catch (e) {print(e);}
               },)
             )))
@@ -56,8 +54,7 @@ class _GameSetupState extends State<GameSetupPage> {
         // Ship selector
         Expanded(child: Column(
           children: ships.map((s) => GestureDetector(
-            onTap: () { 
-              print('in here - $selected');
+            onTap: () {
               setState(() => selected = ships.indexOf(s));
             },
             child: SizedBox(

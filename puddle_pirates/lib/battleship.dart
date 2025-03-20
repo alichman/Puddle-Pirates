@@ -258,7 +258,6 @@ class BattleshipGrid extends StatelessWidget {
             final shot = content?.shot;
             return GestureDetector(
               onTap: (){
-                print('$x $y');
                 if (callback != null) {
                   callback!(Coord(x, y));
                 }
