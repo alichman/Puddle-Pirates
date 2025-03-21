@@ -8,6 +8,8 @@ class GameState extends ChangeNotifier {
   int round = 0;
   int cPlayer = 0;
   List<Player> players = [];
+  String? nextPath;
+  BuildContext? _context;
 
   // No AI Support yet.
   // Also resets game values.
@@ -18,10 +20,20 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setContext(BuildContext newContext) {
+    if (_context != null) return;
+    _context = newContext;
+  }
+
   Player getCurrentPlayer () => players[cPlayer];
-  void toNextPlayer() {
+
+  // Hides previous screen, and navigates to screenPath
+  // Switches players.
+  void toNextPlayer(String screenPath) {
     // 1 - 0 = 1, 1 - 1 = 0
     cPlayer = 1 - cPlayer;
+    nextPath = screenPath;
+    Navigator.pushNamed(_context!, '/passing_screen');
     notifyListeners();
   }
 }

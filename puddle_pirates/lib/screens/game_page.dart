@@ -11,8 +11,6 @@ class GamePage extends StatefulWidget {
 }
 
 class GamePageState extends State<GamePage> {
-  bool _showTurnConfirmation = false;
-
   void _showWinningPopup(BuildContext context) {
     final gameState = Provider.of<GameState>(context, listen: false);
     showDialog(
@@ -23,21 +21,16 @@ class GamePageState extends State<GamePage> {
           content: Text('${gameState.players[gameState.cPlayer].name} Wins!'),
           actions: <Widget>[
             TextButton(
-              child: const Text('OK'),
+              child: const Text('Back to home page'),
               onPressed: () {
                 Navigator.of(context).pop();
+                Navigator.of(context).pushNamed('/');
               },
             ),
           ],
         );
       },
     );
-  }
-
-  void _showTurnConfirmationScreen() {
-    setState(() {
-      _showTurnConfirmation = true; // Show the full-screen confirmation screen
-    });
   }
 
   @override
@@ -115,7 +108,7 @@ class GamePageState extends State<GamePage> {
               // Click-to-Confirm Turn
               GestureDetector(
                 onHorizontalDragEnd: (details) {
-                  _showTurnConfirmationScreen(); // Show the full-screen confirmation screen
+                  gameState.toNextPlayer('/game_page');
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
@@ -138,35 +131,6 @@ class GamePageState extends State<GamePage> {
               ),
             ],
           ),
-          // Turn Confirmation Screen
-          if (_showTurnConfirmation)
-            Container(
-              color: Colors.black, // black background
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Pass the device to the next player',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        gameState.toNextPlayer(); // Switch the turn using GameState
-                        setState(() {
-                          _showTurnConfirmation = false; // Hide the confirmation screen
-                        });
-                      },
-                      child: const Text(
-                        'Confirm Turn Switch',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );

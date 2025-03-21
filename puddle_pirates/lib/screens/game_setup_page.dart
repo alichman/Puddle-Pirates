@@ -24,7 +24,8 @@ class _GameSetupState extends State<GameSetupPage> {
     const shipSize = 45;
     final gameState = context.watch<GameState>();
     final cPlayer = gameState.getCurrentPlayer();
-
+    // Ensure game state can navigate
+    gameState.setContext(context);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -98,11 +99,11 @@ class _GameSetupState extends State<GameSetupPage> {
                 if (ships.isNotEmpty) return;
                 // uses index of cPlayer to check if other player is set up.
                 if (gameState.cPlayer == 0) {
-                  gameState.toNextPlayer();
-                  ships = ShipType.values.map((t) => t).toList(); 
+                  ships = ShipType.values.map((t) => t).toList();
+                  gameState.toNextPlayer('/game_setup');
                   return;
                 }
-                Navigator.pushNamed(context, '/game_page');
+                gameState.toNextPlayer('/game_page');
               },
               child: const Text(
                 "Continue",

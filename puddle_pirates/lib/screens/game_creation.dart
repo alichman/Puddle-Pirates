@@ -139,8 +139,7 @@ class GameCreationScreenState extends State<GameCreationScreen> {
                             "AI", // Default AI name
                           );
                         }
-
-                        Navigator.pushNamed(context, '/game_setup_page');
+                        Navigator.pushNamed(context, '/game_setup');
                     },
                     child: const Text(
                       "Start Game",
