@@ -8,7 +8,6 @@ class GameCard {
   final String description;
   final double probability;
   final String callback;
-  final bool isInfrastructure;
 
   GameCard({
     required this.id,
@@ -18,7 +17,6 @@ class GameCard {
     required this.description,
     required this.probability,
     required this.callback,
-    this.isInfrastructure = false,
   });
 
   /// Converts JSON data to a GameCard object.
@@ -31,7 +29,6 @@ class GameCard {
       description: json['description'],
       probability: (json['probability'] as num).toDouble(),
       callback: json['callback'],
-      isInfrastructure: json['isInfrastructure'] ?? false,
     );
   }
 }
