@@ -26,11 +26,11 @@ class GameState extends ChangeNotifier {
   }
 
   Player getCurrentPlayer () => players[cPlayer];
+  Player getOpponent () => players[1-cPlayer];
 
   // Hides previous screen, and navigates to screenPath
   // Switches players.
   void toNextPlayer(String screenPath) {
-    // 1 - 0 = 1, 1 - 1 = 0
     cPlayer = 1 - cPlayer;
     nextPath = screenPath;
     Navigator.pushNamed(_context!, '/passing_screen');
@@ -38,7 +38,6 @@ class GameState extends ChangeNotifier {
   }
 }
 
-// Will probably move this to a separate file once it grows.
 class Player {
   String name;
 

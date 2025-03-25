@@ -33,6 +33,12 @@ class GamePageState extends State<GamePage> {
     );
   }
 
+  // Determines which grid is shown. Would be nice to put this on a swipable row or something.
+  // Toggled by a button for now.
+  bool showAttackGrid = false;
+
+  bool hasAttacked = false;
+
   @override
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameState>(context);
@@ -47,6 +53,7 @@ class GamePageState extends State<GamePage> {
     }
 
     final cPlayer = gameState.getCurrentPlayer();
+    final ePlayer = gameState.getOpponent();
 
     return Scaffold(
       appBar: AppBar(
@@ -64,23 +71,40 @@ class GamePageState extends State<GamePage> {
           // Main Game Content
           Column(
             children: [
-              // Battleship Grid
-              Expanded(
-                child: ChangeNotifierProvider.value(
-                  value: cPlayer.grid,
-                  child: Center(
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.95,
-                      child: BattleshipGrid(
-                        callback: (square) {
-                          // Handle grid taps (logic will be added later)
-                          print("Tapped on square: $square");
-                        },
-                      ),
+              // Battleship Grids
+              [Expanded(child: ChangeNotifierProvider.value(
+                value: cPlayer.grid,
+                child: Center(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.95,
+                    child: BattleshipGrid(
+                      callback: (square) {
+                        // Handle grid taps (logic will be added later)
+                        print("Tapped on square: $square");
+                      },
                     ),
                   ),
                 ),
-              ),
+              )),
+              Expanded(child: ChangeNotifierProvider.value(
+                value: ePlayer.grid,
+                child: Center(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.95,
+                    child: BattleshipGrid(
+                      attackMode: true,
+                      callback: (square) {
+                        // Attack logic
+                        if (hasAttacked) return;
+                        
+                        ePlayer.grid.attack(square);
+                        setState(() => hasAttacked = true);
+                      },
+                    ),
+                  ),
+                ),
+              ))][showAttackGrid ? 1:0],
+              FloatingActionButton(onPressed: () => setState(() => showAttackGrid = !showAttackGrid), child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')),
               // Card Section (Horizontally Scrollable)
               Container(
                 height: 120, // Fixed height for the card section
