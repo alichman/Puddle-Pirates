@@ -25,6 +25,7 @@ class PassingScreen extends StatelessWidget{
                 if (gameState.nextPath == null) {
                   throw Exception('Passing Screen Error - no next path');
                 }
+                gameState.forceRefresh();
                 Navigator.pushNamed(context, gameState.nextPath!);
                 gameState.nextPath = null;
               },
