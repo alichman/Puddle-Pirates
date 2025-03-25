@@ -97,7 +97,13 @@ class GamePageState extends State<GamePage> {
                         // Attack logic
                         if (hasAttacked) return;
                         
-                        ePlayer.grid.attack(square);
+                        ePlayer.grid.attack([square]);
+                        if (ePlayer.grid.checkLoss()) {
+                          _showWinningPopup(context);
+                          print('Game is won');
+                          return;
+                        }
+                        print('the fuck');
                         setState(() => hasAttacked = true);
                       },
                     ),
@@ -147,6 +153,7 @@ class GamePageState extends State<GamePage> {
                 ),
               ),
               // Hidden Button for Testing Winning Screen
+              // TODO: remove when not needed (real win is now achievable)
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(

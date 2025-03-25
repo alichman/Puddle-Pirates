@@ -67,6 +67,8 @@ class Ship {
 
   Ship(this.type, this.base, this.vert);
 
+  bool isSunk = false;
+
   List<Coord> getOccupiedSquares() {
     final List<Coord> result = [];
     int x = base.x, y = base.y;
@@ -155,13 +157,40 @@ class Grid extends ChangeNotifier{
     notifyListeners();
   }
 
-  void attack (Coord square) {
-    square.validate();
+  // Checks if a ship is sunk and sets Ship.isSunk.
+  // Returns result for local logic.
+  bool checkShipSink (Ship ship) {
+    final squares = ship.getOccupiedSquares();
+    for (Coord s in squares) {
+      if (getShotFromSquare(s) == null) return false;
+    }
 
-    // Don't allow attacks on previous attacked squares.
-    if (getShotFromSquare(square) != null) throw Exception("Grid Error: Can't attack non-empty square");
-    
-    _hitsGrid[square.x][square.y] = getShipFromSquare(square) == null ? Shot.miss : Shot.hit;
+    ship.isSunk = true;
+    return true;
+  }
+
+  bool checkLoss () {
+    for (Ship s in _ships){
+      if (!s.isSunk) return false;
+    }
+    return true;
+  }
+
+  void attack (List<Coord> squares) {
+    for (Coord s in squares){
+      s.validate();
+      // Don't allow attacks on previous attacked squares.
+      if (getShotFromSquare(s) != null) throw Exception("Grid Error: Can't attack non-empty square");
+
+      final hitShip = getShipFromSquare(s);
+      if (hitShip == null) {
+        _hitsGrid[s.x][s.y] = Shot.miss;
+        return;
+      }
+
+      _hitsGrid[s.x][s.y] = Shot.hit;
+      checkShipSink(hitShip);
+    }
     notifyListeners();
   }
 
@@ -188,13 +217,15 @@ class BattleshipGrid extends StatelessWidget {
     
     Color getSquareColor(int x, int y, Ship? ship, Shot? shot) {
       if (attackMode) {
+        if (ship?.isSunk == true) return Colors.white;
+
         if (shot == Shot.hit) return Colors.red;
         if (shot == Shot.miss) return Colors.lightBlue;
       
         return [const Color.fromARGB(255, 0, 46, 12), const Color.fromARGB(255, 0, 25, 7)][(x+y) % 2];
       }
 
-      if (ship !=null) return shipColorMap[ship.type]!;
+      if (ship !=null) return ship.isSunk ? Colors.black : shipColorMap[ship.type]!;
       return [const Color.fromARGB(255, 15, 44, 148), const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
     }
 
