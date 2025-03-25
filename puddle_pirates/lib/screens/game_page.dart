@@ -132,14 +132,15 @@ class GamePageState extends State<GamePage> {
               // Click-to-Confirm Turn
               GestureDetector(
                 onHorizontalDragEnd: (details) {
+                  if(!hasAttacked) return;
                   gameState.toNextPlayer('/game_page');
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
-                  color: Colors.blue,
-                  child: const Center(
+                  color: hasAttacked ? Colors.blue : Colors.grey,
+                  child: Center(
                     child: Text(
-                      'Click to Confirm Turn',
+                      hasAttacked ? 'Click to Confirm Turn':'You have not attacked',
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
