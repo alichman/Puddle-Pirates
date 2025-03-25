@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:puddle_pirates/screens/game_setup_page.dart';
 import 'package:puddle_pirates/screens/main_menu.dart';
 import 'package:puddle_pirates/screens/game_creation.dart';
+import 'package:puddle_pirates/screens/passing_screen.dart';
 import 'package:puddle_pirates/screens/saved_games.dart';
 import 'package:puddle_pirates/screens/card_library.dart';
 import 'package:puddle_pirates/screens/settings.dart';
 import 'package:puddle_pirates/screens/game_page.dart';
-import 'package:provider/provider.dart';
 import 'package:puddle_pirates/states.dart';
 
 void main() {
@@ -32,11 +32,12 @@ class PuddlePiratesApp extends StatelessWidget {
       routes: {
         '/': (context) => const MainMenu(),
         '/game_creation': (context) => const GameCreationScreen(),
-        '/game_setup_page': (context) => const GameSetupPage(),
+        '/game_setup': (context) => const GameSetupPage(),
         '/saved_games': (context) => const SavedGamesScreen(),
         '/card_library': (context) => const CardLibraryScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/game_page': (context) => const GamePage(),
+        '/passing_screen': (context) => PassingScreen(),
       },
     );
   }
