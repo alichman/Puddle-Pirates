@@ -1,0 +1,41 @@
+{
+    "deck": [
+      {
+        "id": "1",
+        "name": "Tactical Repositioning",
+        "price": 200,
+        "type": "Intercept",
+        "description": "Instantly transport a ship to an open area.",
+        "probability": 0.231,
+        "callback": "tacticalRepositioning"
+      },
+      {
+        "id": "2",
+        "name": "Volley Fire",
+        "price": 200,
+        "type": "Booster",
+        "description": "Increase the area of your attack by 2 units in each direction.",
+        "probability": 0.231,
+        "callback": "volleyFire"
+      },
+      {
+        "id": "3",
+        "name": "Repair Crew",
+        "price": 100,
+        "type": "Deployment",
+        "description": "Instantly repair an unsunk ship to full health.",
+        "probability": 0.461,
+        "callback": "repairCrew"
+      },
+      {
+        "id": "4",
+        "name": "Intelligence",
+        "price": 600,
+        "type": "Infrastructure",
+        "description": "After your draw phase, reveal one of your opponent's cards at random.",
+        "probability": 0.077,
+        "callback": "intelligence"
+      }
+    ]
+  }
+  
