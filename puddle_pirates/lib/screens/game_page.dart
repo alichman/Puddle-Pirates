@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
+import 'package:puddle_pirates/card.dart';
 import 'package:puddle_pirates/states.dart';
 
 class GamePage extends StatefulWidget {
@@ -103,7 +104,6 @@ class GamePageState extends State<GamePage> {
                           print('Game is won');
                           return;
                         }
-                        print('the fuck');
                         setState(() => hasAttacked = true);
                       },
                     ),
@@ -112,29 +112,15 @@ class GamePageState extends State<GamePage> {
               ))][showAttackGrid ? 1:0],
               FloatingActionButton(onPressed: () => setState(() => showAttackGrid = !showAttackGrid), child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')),
               // Card Section (Horizontally Scrollable)
-              Container(
-                height: 120, // Fixed height for the card section
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: List.generate(4, (index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                      width: 100, // Fixed width for each card
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[200],
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Card $index',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
+              ChangeNotifierProvider.value(value: cPlayer.hand, child:
+                Container(
+                  height: 120, // Fixed height for the card section
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: cPlayer.hand.cards.map((card) => CardWidget(card: card)).toList()
+                  ),
+              )),
               // Click-to-Confirm Turn
               GestureDetector(
                 onHorizontalDragEnd: (details) {

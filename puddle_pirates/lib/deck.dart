@@ -18,6 +18,10 @@ class Deck {
 
       deck.clear();
       deck.addAll(deckJson.map((cardJson) => GameCard.fromJson(cardJson)));
+      // Store card effects inside cards on creation
+      for (GameCard c in deck) {
+        c.effect = _getCardEffect(c);
+      }
     } catch (e) {
       throw Exception('Error initializing deck: $e');
     }
@@ -51,8 +55,8 @@ class Deck {
     throw Exception('Specified card not found.');
   }
 
-  /// Maps a GameCard callback string to an actual function
-  static VoidCallback getCardEffect(GameCard card) {
+  /// Maps a GameCard callback string to an existing function
+  static VoidCallback _getCardEffect(GameCard card) {
     final Map<String, VoidCallback> callbackMap = {
       "tacticalRepositioning": tacticalRepositioning,
       "volleyFire": volleyFire,
@@ -67,6 +71,7 @@ class Deck {
   }
 
   /// Placeholder Callback Functions
+  /// TODO: move to separate file after implementation
   static void tacticalRepositioning() {
     print("Tactical Repositioning");
   }
@@ -81,5 +86,26 @@ class Deck {
 
   static void intelligence() {
     print("Intelligence");
+  }
+}
+
+
+// Glorified list, here in case we need more logic later.
+class Hand extends ChangeNotifier{
+  final List<GameCard> cards = [];
+  final Deck sourceDeck;
+
+  Hand({required this.sourceDeck});
+
+  void draw() {
+    cards.add(sourceDeck.draw());
+    notifyListeners();
+  }
+
+  // Pops and returns card at an index
+  GameCard playCard(int index) {
+    final card = cards[index];
+    cards.remove(card);
+    return card;
   }
 }

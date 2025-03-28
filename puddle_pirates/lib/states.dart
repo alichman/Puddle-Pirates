@@ -3,6 +3,7 @@ Methods that involve logic outside of states should be done elsewhere. */
 
 import 'package:flutter/material.dart';
 import 'package:puddle_pirates/battleship.dart';
+import 'package:puddle_pirates/deck.dart';
 
 class GameState extends ChangeNotifier {
   int round = 0;
@@ -10,11 +11,12 @@ class GameState extends ChangeNotifier {
   List<Player> players = [];
   String? nextPath;
   BuildContext? _context;
+  final gameDeck = Deck();
 
   // No AI Support yet.
   // Also resets game values.
   void setNewPlayers(String p1Name, String p2Name) {
-    players = [Player(p1Name), Player(p2Name)];
+    players = [Player(p1Name, Hand(sourceDeck: gameDeck)), Player(p2Name, Hand(sourceDeck: gameDeck))];
     cPlayer = 0;
     round = 0;
     notifyListeners();
@@ -46,7 +48,9 @@ class GameState extends ChangeNotifier {
 
 class Player {
   String name;
+  Hand hand;
 
-  Player(this.name);
+  Player(this.name, this.hand);
+
   Grid grid = Grid();
 }

@@ -19,6 +19,8 @@ class GameCard {
     required this.callback,
   });
 
+  VoidCallback? effect;
+
   /// Converts JSON data to a GameCard object.
   factory GameCard.fromJson(Map<String, dynamic> json) {
     return GameCard(
@@ -36,22 +38,20 @@ class GameCard {
 /// Visual GameCard Widget, can be clicked/tapped to execute its callback.
 class CardWidget extends StatelessWidget {
   final GameCard card;
-  final VoidCallback callback;
-  final VoidCallback remove;
+  final VoidCallback? callback;
 
   /// Requires the GameCard object, its callback function, and your function to remove the card when it is played.
   const CardWidget(
       {super.key,
       required this.card,
-      required this.callback,
-      required this.remove});
+      this.callback});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => {
-        callback(),
-        remove(),
+        card.effect!(),
+        if (callback != null) callback!(),
       },
       child: Container(
         margin: EdgeInsets.all(8.0),
