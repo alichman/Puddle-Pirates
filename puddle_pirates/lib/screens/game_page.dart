@@ -101,7 +101,6 @@ class GamePageState extends State<GamePage> {
                         ePlayer.grid.attack([square]);
                         if (ePlayer.grid.checkLoss()) {
                           _showWinningPopup(context);
-                          print('Game is won');
                           return;
                         }
                         setState(() => hasAttacked = true);
