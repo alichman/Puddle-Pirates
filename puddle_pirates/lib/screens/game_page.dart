@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/card.dart';
+import 'package:puddle_pirates/deck.dart';
 import 'package:puddle_pirates/states.dart';
 
 class GamePage extends StatefulWidget {
@@ -37,8 +38,8 @@ class GamePageState extends State<GamePage> {
   // Determines which grid is shown. Would be nice to put this on a swipable row or something.
   // Toggled by a button for now.
   bool showAttackGrid = false;
-
   bool hasAttacked = false;
+  bool hasDrawn = false;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +56,11 @@ class GamePageState extends State<GamePage> {
 
     final cPlayer = gameState.getCurrentPlayer();
     final ePlayer = gameState.getOpponent();
+
+    if (!hasDrawn) {
+      cPlayer.hand.draw();
+      setState(() => hasDrawn = true);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -109,16 +115,23 @@ class GamePageState extends State<GamePage> {
                   ),
                 ),
               ))][showAttackGrid ? 1:0],
-              FloatingActionButton(onPressed: () => setState(() => showAttackGrid = !showAttackGrid), child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')),
+              FloatingActionButton(onPressed: () => setState(
+                () => showAttackGrid = !showAttackGrid), child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
+              ),
               // Card Section (Horizontally Scrollable)
               ChangeNotifierProvider.value(value: cPlayer.hand, child:
                 Container(
                   height: 120, // Fixed height for the card section
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListView(
+                  child: Consumer<Hand>(
+                    builder:(context, hand, child) => ListView(
                     scrollDirection: Axis.horizontal,
-                    children: cPlayer.hand.cards.map((card) => CardWidget(card: card)).toList()
-                  ),
+                    children: hand.cards.map(
+                      (card) => CardWidget(card: card, callback: () => hand.removeCard(card))
+                    ).toList()
+                  ),)
+                  
+                  
               )),
               // Click-to-Confirm Turn
               GestureDetector(

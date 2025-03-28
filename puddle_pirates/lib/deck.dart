@@ -90,7 +90,7 @@ class Deck {
 }
 
 
-// Glorified list, here in case we need more logic later.
+// Glorified list with notifier.
 class Hand extends ChangeNotifier{
   final List<GameCard> cards = [];
   final Deck sourceDeck;
@@ -99,13 +99,12 @@ class Hand extends ChangeNotifier{
 
   void draw() {
     cards.add(sourceDeck.draw());
+    print('card drawn - $cards');
     notifyListeners();
   }
 
-  // Pops and returns card at an index
-  GameCard playCard(int index) {
-    final card = cards[index];
-    cards.remove(card);
-    return card;
+  void removeCard(GameCard card) {
+    print('tried removing: ${cards.remove(card)}');
+    notifyListeners();
   }
 }

@@ -49,9 +49,9 @@ class CardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => {
-        card.effect!(),
-        if (callback != null) callback!(),
+      onTap: () {
+        card.effect!();
+        if (callback != null) callback!();
       },
       child: Container(
         margin: EdgeInsets.all(8.0),

@@ -16,7 +16,8 @@ class GameState extends ChangeNotifier {
   // No AI Support yet.
   // Also resets game values.
   void setNewPlayers(String p1Name, String p2Name) {
-    players = [Player(p1Name, Hand(sourceDeck: gameDeck)), Player(p2Name, Hand(sourceDeck: gameDeck))];
+    players = [Player(name: p1Name, hand: Hand(sourceDeck: gameDeck)), Player(name: p2Name, hand: Hand(sourceDeck: gameDeck))];
+    gameDeck.initialize();
     cPlayer = 0;
     round = 0;
     notifyListeners();
@@ -50,7 +51,7 @@ class Player {
   String name;
   Hand hand;
 
-  Player(this.name, this.hand);
+  Player({required this.name, required this.hand});
 
   Grid grid = Grid();
 }
