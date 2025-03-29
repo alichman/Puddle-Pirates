@@ -20,7 +20,7 @@ class GamePageState extends State<GamePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Game Over'),
-          content: Text('${gameState.players[gameState.cPlayer].name} Wins!'),
+          content: Text('${gameState.currentPlayer.name} Wins!'),
           actions: <Widget>[
             TextButton(
               child: const Text('Back to home page'),
@@ -40,17 +40,7 @@ class GamePageState extends State<GamePage> {
   bool showAttackGrid = false;
   bool hasAttacked = false;
   bool hasDrawn = false;
-
-  // Determines if a card is playable:
-  // - showAttackGrid determines booster playability
-  // - hasDrawn determines if intercept phase is done
-  bool isCardPlayable(GameCard card) {
-    // TODO: add currency
-    if (!hasDrawn) return card.type == CardType.intercept;
-    if (showAttackGrid) return card.type == CardType.booster;
-
-    return [CardType.deployment, CardType.infrastructure].contains(card.type);
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -65,17 +55,22 @@ class GamePageState extends State<GamePage> {
       );
     }
 
-    final cPlayer = gameState.getCurrentPlayer();
-    final ePlayer = gameState.getOpponent();
+    bool isCardPlayable(GameCard card) {
+      if (card.price > gameState.currentPlayer.money) return false;
+      if (!hasDrawn) return card.type == CardType.intercept;
+      if (showAttackGrid) return card.type == CardType.booster;
+
+      return [CardType.deployment, CardType.infrastructure].contains(card.type);
+    }
 
     if (!hasDrawn) {
-      cPlayer.hand.draw();
+      gameState.currentPlayer.hand.draw();
       setState(() => hasDrawn = true);
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("${cPlayer.name}'s Turn"),
+        title: Text("${gameState.currentPlayer.name}'s Turn"),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.home),
@@ -91,21 +86,21 @@ class GamePageState extends State<GamePage> {
             children: [
               // Battleship Grids
               [Expanded(child: ChangeNotifierProvider.value(
-                value: cPlayer.grid,
+                value: gameState.currentPlayer.grid,
                 child: Center(
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.95,
                     child: BattleshipGrid(
                       callback: (square) {
-                        // Handle grid taps (logic will be added later)
                         print("Tapped on square: $square");
+                        // TODO: insert targeted card effect logic
                       },
                     ),
                   ),
                 ),
               )),
               Expanded(child: ChangeNotifierProvider.value(
-                value: ePlayer.grid,
+                value: gameState.opponent.grid,
                 child: Center(
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.95,
@@ -114,8 +109,8 @@ class GamePageState extends State<GamePage> {
                       callback: (square) {
                         // Attack logic
                         if (hasAttacked) return;
-                        try {ePlayer.grid.attack([square]);} catch (e) {print(e);}
-                        if (ePlayer.grid.checkLoss()) {
+                        try {gameState.opponent.grid.attack([square]);} catch (e) {print(e);} // TODO: Change this to account for boosters
+                        if (gameState.opponent.grid.checkLoss()) {
                           _showWinningPopup(context);
                           return;
                         }
@@ -128,8 +123,12 @@ class GamePageState extends State<GamePage> {
               FloatingActionButton(onPressed: () => setState(
                 () => showAttackGrid = !showAttackGrid), child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
               ),
+              Selector<GameState, int>(
+                selector: (_, g) => g.currentPlayer.money,
+                builder: (context, money, child) => Text('Money: \$$money'), // Would be nice to replace with a horizontal bar
+              ),
               // Card Section (Horizontally Scrollable)
-              ChangeNotifierProvider.value(value: cPlayer.hand, child:
+              ChangeNotifierProvider.value(value: gameState.currentPlayer.hand, child:
                 Container(
                   height: 120, // Fixed height for the card section
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -138,7 +137,11 @@ class GamePageState extends State<GamePage> {
                     scrollDirection: Axis.horizontal,
                     children: hand.cards.map((card) => CardWidget(
                         card: card,
-                        callback: () => hand.removeCard(card),
+                        callback: (){
+                          hand.removeCard(card);
+                          gameState.currentPlayer.spend(card.price);
+                          gameState.forceRefresh();
+                        },
                         playable: isCardPlayable(card)
                     )).toList()
                   ),
@@ -147,7 +150,7 @@ class GamePageState extends State<GamePage> {
               GestureDetector(
                 onHorizontalDragEnd: (details) {
                   if(!hasAttacked) return;
-                  gameState.toNextPlayer('/game_page');
+                  gameState.toNextPlayer(context, '/game_page');
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),

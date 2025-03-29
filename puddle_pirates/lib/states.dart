@@ -7,10 +7,9 @@ import 'package:puddle_pirates/deck.dart';
 
 class GameState extends ChangeNotifier {
   int round = 0;
-  int cPlayer = 0;
+  int cPlayerIndex = 0;
   List<Player> players = [];
   String? nextPath;
-  BuildContext? _context;
   final gameDeck = Deck();
 
   // No AI Support yet.
@@ -18,18 +17,13 @@ class GameState extends ChangeNotifier {
   void setNewPlayers(String p1Name, String p2Name) {
     players = [Player(name: p1Name, hand: Hand(sourceDeck: gameDeck)), Player(name: p2Name, hand: Hand(sourceDeck: gameDeck))];
     gameDeck.initialize();
-    cPlayer = 0;
+    cPlayerIndex = 0;
     round = 0;
     notifyListeners();
   }
 
-  void setContext(BuildContext newContext) {
-    if (_context != null) return;
-    _context = newContext;
-  }
-
-  Player getCurrentPlayer () => players[cPlayer];
-  Player getOpponent () => players[1-cPlayer];
+  Player get currentPlayer => players[cPlayerIndex];
+  Player get opponent => players[1-cPlayerIndex];
 
   // Avoid using this if possible. This exists for when there's no other way
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
@@ -40,18 +34,25 @@ class GameState extends ChangeNotifier {
   // Do not notify listeners in here. That will update the grids
   // before the passing screen is pushed. Listeners are notified in
   // the passing screen.
-  void toNextPlayer(String screenPath) {
-    cPlayer = 1 - cPlayer;
+  void toNextPlayer(BuildContext context, String screenPath) {
+    cPlayerIndex = 1 - cPlayerIndex;
     nextPath = screenPath;
-    Navigator.pushNamed(_context!, '/passing_screen');
+    Navigator.pushNamed(context, '/passing_screen');
   }
 }
 
-class Player {
+class Player extends ChangeNotifier{
   String name;
   Hand hand;
-
   Player({required this.name, required this.hand});
 
   Grid grid = Grid();
+  int money = 1000; //TODO: find a more appropriate word
+
+  bool spend(int amount) {
+    if (amount > money) return false;
+    money -= amount;
+    notifyListeners();
+    return true;
+  }
 }

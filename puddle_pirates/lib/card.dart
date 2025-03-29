@@ -79,7 +79,7 @@ class CardWidget extends StatelessWidget {
           color: playable ? Colors.white : Colors.grey,
           borderRadius: BorderRadius.circular(8.0),
         ),
-        child: Text(card.name),
+        child: Column(children: [Text(card.name), Text('\$${card.price}')])
       ),
     );
   }
