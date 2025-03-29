@@ -41,6 +41,17 @@ class GamePageState extends State<GamePage> {
   bool hasAttacked = false;
   bool hasDrawn = false;
 
+  // Determines if a card is playable:
+  // - showAttackGrid determines booster playability
+  // - hasDrawn determines if intercept phase is done
+  bool isCardPlayable(GameCard card) {
+    // TODO: add currency
+    if (!hasDrawn) return card.type == CardType.intercept;
+    if (showAttackGrid) return card.type == CardType.booster;
+
+    return [CardType.deployment, CardType.infrastructure].contains(card.type);
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameState>(context);
@@ -103,8 +114,7 @@ class GamePageState extends State<GamePage> {
                       callback: (square) {
                         // Attack logic
                         if (hasAttacked) return;
-                        
-                        ePlayer.grid.attack([square]);
+                        try {ePlayer.grid.attack([square]);} catch (e) {print(e);}
                         if (ePlayer.grid.checkLoss()) {
                           _showWinningPopup(context);
                           return;
@@ -126,13 +136,13 @@ class GamePageState extends State<GamePage> {
                   child: Consumer<Hand>(
                     builder:(context, hand, child) => ListView(
                     scrollDirection: Axis.horizontal,
-                    children: hand.cards.map(
-                      (card) => CardWidget(card: card, callback: () => hand.removeCard(card))
-                    ).toList()
-                  ),)
-                  
-                  
-              )),
+                    children: hand.cards.map((card) => CardWidget(
+                        card: card,
+                        callback: () => hand.removeCard(card),
+                        playable: isCardPlayable(card)
+                    )).toList()
+                  ),
+              ))),
               // Click-to-Confirm Turn
               GestureDetector(
                 onHorizontalDragEnd: (details) {

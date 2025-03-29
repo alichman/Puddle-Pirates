@@ -64,9 +64,9 @@ class Deck {
       "intelligence": intelligence,
     };
 
-    return callbackMap[card.callback] ??
+    return callbackMap[card.callbackString] ??
         () {
-          print("Unknown card effect: ${card.callback}");
+          print("Unknown card effect: ${card.callbackString}");
         };
   }
 
@@ -99,12 +99,20 @@ class Hand extends ChangeNotifier{
 
   void draw() {
     cards.add(sourceDeck.draw());
-    print('card drawn - $cards');
     notifyListeners();
   }
 
   void removeCard(GameCard card) {
-    print('tried removing: ${cards.remove(card)}');
+    cards.remove(card);
     notifyListeners();
+  }
+
+  // TODO: we need to determine the right word to use everywhere.
+  // 'money' isn't great.
+  bool hasPlayableIntercepts(int money) {
+    for (GameCard card in cards){
+      if (card.type == CardType.intercept && card.price < money) return true;
+    }
+    return false;
   }
 }

@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 
+enum CardType {
+  infrastructure,
+  booster,
+  intercept,
+  deployment
+}
+
+const stringToCardTypeMap = {
+  "Intercept": CardType.intercept,
+  "Booster": CardType.booster,
+  "Deployment": CardType.deployment,
+  "Infrastructure": CardType.infrastructure,
+};
+
 class GameCard {
   final String id;
   final String name;
   final int price;
-  final String type;
   final String description;
   final double probability;
-  final String callback;
+  final String callbackString;
+  CardType type;
 
   GameCard({
     required this.id,
@@ -16,7 +30,7 @@ class GameCard {
     required this.type,
     required this.description,
     required this.probability,
-    required this.callback,
+    required this.callbackString,
   });
 
   VoidCallback? effect;
@@ -27,10 +41,10 @@ class GameCard {
       id: json['id'],
       name: json['name'],
       price: json['price'],
-      type: json['type'],
+      type: stringToCardTypeMap[json['type']]!, // Unsafe intentionally. Game should crash if a JSON contains an impossible card.
       description: json['description'],
       probability: (json['probability'] as num).toDouble(),
-      callback: json['callback'],
+      callbackString: json['callback'],
     );
   }
 }
@@ -39,17 +53,21 @@ class GameCard {
 class CardWidget extends StatelessWidget {
   final GameCard card;
   final VoidCallback? callback;
+  final bool playable;
 
   /// Requires the GameCard object, its callback function, and your function to remove the card when it is played.
-  const CardWidget(
-      {super.key,
+  const CardWidget({
+      super.key,
       required this.card,
-      this.callback});
+      this.callback,
+      this.playable = true,
+    });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        if (!playable) return;
         card.effect!();
         if (callback != null) callback!();
       },
@@ -58,6 +76,7 @@ class CardWidget extends StatelessWidget {
         padding: EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
+          color: playable ? Colors.white : Colors.grey,
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: Text(card.name),
