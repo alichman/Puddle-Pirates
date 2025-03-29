@@ -26,6 +26,7 @@ class GameState extends ChangeNotifier {
   }
 
   Player getCurrentPlayer () => players[cPlayer];
+  Player getOpponent () => players[1-cPlayer];
 
   // Avoid using this if possible. This exists for when there's no other way
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
@@ -37,14 +38,12 @@ class GameState extends ChangeNotifier {
   // before the passing screen is pushed. Listeners are notified in
   // the passing screen.
   void toNextPlayer(String screenPath) {
-    // 1 - 0 = 1, 1 - 1 = 0
     cPlayer = 1 - cPlayer;
     nextPath = screenPath;
     Navigator.pushNamed(_context!, '/passing_screen');
   }
 }
 
-// Will probably move this to a separate file once it grows.
 class Player {
   String name;
 
