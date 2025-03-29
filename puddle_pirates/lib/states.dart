@@ -8,6 +8,8 @@ class GameState extends ChangeNotifier {
   int round = 0;
   int cPlayer = 0;
   List<Player> players = [];
+  String? nextPath;
+  BuildContext? _context;
 
   // No AI Support yet.
   // Also resets game values.
@@ -18,11 +20,27 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setContext(BuildContext newContext) {
+    if (_context != null) return;
+    _context = newContext;
+  }
+
   Player getCurrentPlayer () => players[cPlayer];
-  void toNextPlayer() {
+
+  // Avoid using this if possible. This exists for when there's no other way
+  // to ensure refresh timing is right and the game doesn't show players' info to opponents.
+  void forceRefresh () => notifyListeners();
+
+  // Hides previous screen, and navigates to screenPath
+  // Switches players. 
+  // Do not notify listeners in here. That will update the grids
+  // before the passing screen is pushed. Listeners are notified in
+  // the passing screen.
+  void toNextPlayer(String screenPath) {
     // 1 - 0 = 1, 1 - 1 = 0
     cPlayer = 1 - cPlayer;
-    notifyListeners();
+    nextPath = screenPath;
+    Navigator.pushNamed(_context!, '/passing_screen');
   }
 }
 
