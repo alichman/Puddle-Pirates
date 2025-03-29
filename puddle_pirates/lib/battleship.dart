@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:puddle_pirates/states.dart';
 
 
 enum ShipType {
@@ -67,6 +66,8 @@ class Ship {
   bool vert;
 
   Ship(this.type, this.base, this.vert);
+
+  bool isSunk = false;
 
   List<Coord> getOccupiedSquares() {
     final List<Coord> result = [];
@@ -156,13 +157,40 @@ class Grid extends ChangeNotifier{
     notifyListeners();
   }
 
-  void attack (Coord square) {
-    square.validate();
+  // Checks if a ship is sunk and sets Ship.isSunk.
+  // Returns result for local logic.
+  bool checkShipSink (Ship ship) {
+    final squares = ship.getOccupiedSquares();
+    for (Coord s in squares) {
+      if (getShotFromSquare(s) == null) return false;
+    }
 
-    // Don't allow attacks on previous attacked squares.
-    if (getShotFromSquare(square) != null) throw Exception("Grid Error: Can't attack non-empty square");
-    
-    _hitsGrid[square.x][square.y] = getShipFromSquare(square) == null ? Shot.miss : Shot.hit;
+    ship.isSunk = true;
+    return true;
+  }
+
+  bool checkLoss () {
+    for (Ship s in _ships){
+      if (!s.isSunk) return false;
+    }
+    return true;
+  }
+
+  void attack (List<Coord> squares) {
+    for (Coord s in squares){
+      s.validate();
+      // Don't allow attacks on previous attacked squares.
+      if (getShotFromSquare(s) != null) throw Exception("Grid Error: Can't attack non-empty square");
+
+      final hitShip = getShipFromSquare(s);
+      if (hitShip == null) {
+        _hitsGrid[s.x][s.y] = Shot.miss;
+        return;
+      }
+
+      _hitsGrid[s.x][s.y] = Shot.hit;
+      checkShipSink(hitShip);
+    }
     notifyListeners();
   }
 
@@ -176,69 +204,29 @@ class Grid extends ChangeNotifier{
   }
 }
 
-// Display section
-// Battleship graphics will be handled here
-// Basically all temporary and for refference only.
-
-// Temporary full page.
-class BattleshipPage extends StatefulWidget {
-  const BattleshipPage({super.key});
-  
-  @override
-  State<BattleshipPage> createState() => _BattleshipPageState();
-}
-
-class _BattleshipPageState extends State<BattleshipPage> {
-  // Temporary test player
-  Player player = Player('test 1');
-
-  /* Horrific mode handling. Worst code ever written. 
-  I'm glad this will be deleted as soon as UI is done.
-  This only exists to test different functions.
-      0 - add a horizontal submarine
-      1 - add a vertical carrier
-      2 - delete ship
-      4 - Fire
-      5 - Heal ship fully
-  */
-  int mode = 0;
-  List<String> modeText = ['Add H sub',
-                          'Add V Carrier',
-                          'Delete',
-                          'Fire',
-                          'Heal'];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: [
-      Expanded(child: ChangeNotifierProvider.value(
-        value: player.grid,
-        child: Center(child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
-          child: BattleshipGrid()
-        ),
-      ))),
-      TextButton(onPressed: () => setState(() => mode = (mode+1) % 5), child: Text('Mode: $mode (${modeText[mode]})'))
-      ]);
-  }
-}
 
 class BattleshipGrid extends StatelessWidget {
+  final bool attackMode;
   final void Function(Coord square)? callback;
-  
-  const BattleshipGrid({super.key, this.callback});
+  const BattleshipGrid({super.key, this.callback, this.attackMode=false});
 
   static const gridSize = 10;
 
   @override
   Widget build(BuildContext context) {
     
-    Color getSquareColor(int x, int y, Ship? ship) {
-      if (ship == null) {
-        return [const Color.fromARGB(255, 15, 44, 148),
-         const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
+    Color getSquareColor(int x, int y, Ship? ship, Shot? shot) {
+      if (attackMode) {
+        if (ship?.isSunk == true) return Colors.white;
+
+        if (shot == Shot.hit) return Colors.red;
+        if (shot == Shot.miss) return Colors.lightBlue;
+      
+        return [const Color.fromARGB(255, 0, 46, 12), const Color.fromARGB(255, 0, 25, 7)][(x+y) % 2];
       }
-      return shipColorMap[ship.type]!;
+
+      if (ship !=null) return ship.isSunk ? Colors.black : shipColorMap[ship.type]!;
+      return [const Color.fromARGB(255, 15, 44, 148), const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
     }
 
     // Cenetered 10x10 grid. Size is handled externally.
@@ -263,12 +251,12 @@ class BattleshipGrid extends StatelessWidget {
                 }
               },
               child: Container(
-                color: getSquareColor(x, y, ship),
+                color: getSquareColor(x, y, ship, shot),
                 alignment: Alignment.center,
                 margin: EdgeInsets.all(1),
                 child: Text('${{Shot.hit: 'hit', Shot.miss: 'miss', null: ''}[shot]}', style: TextStyle(backgroundColor: Colors.white),),
               ));
-          });
+        });
       }));
   }
 }

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:puddle_pirates/states.dart';
 
 class PassingScreen extends StatelessWidget{
-  PassingScreen({super.key});
+  const PassingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
