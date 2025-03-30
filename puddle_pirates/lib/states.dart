@@ -9,8 +9,10 @@ class GameState extends ChangeNotifier {
   int round = 0;
   int cPlayerIndex = 0;
   List<Player> players = [];
-  String? nextPath;
+
   final gameDeck = Deck();
+
+  String? nextPath;
 
   // No AI Support yet.
   // Also resets game values.

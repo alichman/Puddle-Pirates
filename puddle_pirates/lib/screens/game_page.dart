@@ -35,11 +35,9 @@ class GamePageState extends State<GamePage> {
     );
   }
 
-  // Determines which grid is shown. Would be nice to put this on a swipable row or something.
-  // Toggled by a button for now.
   bool showAttackGrid = false;
   bool hasAttacked = false;
-  bool hasDrawn = false;
+  bool isInterceptPhase = true;
   
 
   @override
@@ -57,15 +55,10 @@ class GamePageState extends State<GamePage> {
 
     bool isCardPlayable(GameCard card) {
       if (card.price > gameState.currentPlayer.money) return false;
-      if (!hasDrawn) return card.type == CardType.intercept;
+      if (isInterceptPhase) return card.type == CardType.intercept;
       if (showAttackGrid) return card.type == CardType.booster;
 
       return [CardType.deployment, CardType.infrastructure].contains(card.type);
-    }
-
-    if (!hasDrawn) {
-      gameState.currentPlayer.hand.draw();
-      setState(() => hasDrawn = true);
     }
 
     return Scaffold(
@@ -109,7 +102,8 @@ class GamePageState extends State<GamePage> {
                       callback: (square) {
                         // Attack logic
                         if (hasAttacked) return;
-                        try {gameState.opponent.grid.attack([square]);} catch (e) {print(e);} // TODO: Change this to account for boosters
+                        // TODO: booster logic goes here
+                        gameState.opponent.grid.setAttack([square]);
                         if (gameState.opponent.grid.checkLoss()) {
                           _showWinningPopup(context);
                           return;
@@ -120,9 +114,19 @@ class GamePageState extends State<GamePage> {
                   ),
                 ),
               ))][showAttackGrid ? 1:0],
-              FloatingActionButton(onPressed: () => setState(
-                () => showAttackGrid = !showAttackGrid), child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
+
+              isInterceptPhase ? FloatingActionButton(
+                onPressed: () {
+                  gameState.currentPlayer.hand.draw();
+                  gameState.currentPlayer.grid.executeAttack();
+                  setState(() => isInterceptPhase = false);
+                },
+                child: Text('Done intercept')
+              ): FloatingActionButton(
+                onPressed: () => setState(() => showAttackGrid = !showAttackGrid),
+                child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
               ),
+
               Selector<GameState, int>(
                 selector: (_, g) => g.currentPlayer.money,
                 builder: (context, money, child) => Text('Money: \$$money'), // Would be nice to replace with a horizontal bar

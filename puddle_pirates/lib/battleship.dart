@@ -41,6 +41,16 @@ class Coord {
       throw Exception('Coordinate error: y $y is out of range');
     }
   }
+
+  // Allow == comparison between coord objects
+  @override
+  bool operator == (Object other) =>
+    identical(this, other) ||
+    other is Coord && x == other.x && y == other.y;
+
+  // Hashcode override: maps and such will place this based on the x and y components
+  @override
+  int get hashCode => x.hashCode ^ y.hashCode;
 }
 
 const shipLengthMap = {
@@ -89,8 +99,9 @@ class Ship {
 class GridContent {
   final Ship? ship;
   final Shot? shot;
+  final bool underAttack;
 
-  GridContent(this.ship, this.shot);
+  GridContent(this.ship, this.shot, this.underAttack);
 }
 
 class Grid extends ChangeNotifier{
@@ -104,7 +115,8 @@ class Grid extends ChangeNotifier{
   // 10x10 null grids
   final List<List<Ship?>> _shipGrid = List.generate(10, (_) => List.filled(10, null));
   final List<Ship> _ships = [];
-  final List<List<Shot?>> _hitsGrid = List.generate(10, (_) => List.filled(10, null));
+  final List<List<Shot?>> _shotsGrid = List.generate(10, (_) => List.filled(10, null));
+  List<Coord> underAttack = [];
 
   // Abstracted table access
   Ship? getShipFromSquare (Coord square) {
@@ -114,7 +126,7 @@ class Grid extends ChangeNotifier{
 
   Shot? getShotFromSquare (Coord square) {
     square.validate();
-    return _hitsGrid[square.x][square.y];
+    return _shotsGrid[square.x][square.y];
   }
 
   // Checks line for any ships and hits, as specified by bools.
@@ -184,12 +196,11 @@ class Grid extends ChangeNotifier{
 
       final hitShip = getShipFromSquare(s);
       if (hitShip == null) {
-        _hitsGrid[s.x][s.y] = Shot.miss;
-        return;
+        _shotsGrid[s.x][s.y] = Shot.miss;
+      } else {
+        _shotsGrid[s.x][s.y] = Shot.hit;
+        checkShipSink(hitShip);
       }
-
-      _hitsGrid[s.x][s.y] = Shot.hit;
-      checkShipSink(hitShip);
     }
     notifyListeners();
   }
@@ -198,9 +209,29 @@ class Grid extends ChangeNotifier{
   void setHits (List<Coord> squares, Shot? value) {
     for (Coord s in squares) {
       s.validate();
-      _hitsGrid[s.x][s.y] = value;
+      _shotsGrid[s.x][s.y] = value;
     }
     notifyListeners();
+  }
+
+  // Validates each square, and removes invalid ones.
+  // Attack executed by executeAttack() on the current player at that time.
+  void setAttack (List<Coord> squares, {bool clearCurrentAttacks=true}){
+    if (clearCurrentAttacks) underAttack = [];
+
+    for (Coord s in squares) {
+      try {
+        s.validate();
+        underAttack.add(s);
+      } catch (e) {print(e);} // Expected error if part of an attack is out of range.
+    }
+    notifyListeners();
+  }
+
+  void executeAttack() {
+    attack(underAttack);
+    // Attack notifies listeners. No need to do it again.
+    underAttack = [];
   }
 }
 
@@ -214,7 +245,6 @@ class BattleshipGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     Color getSquareColor(int x, int y, Ship? ship, Shot? shot) {
       if (attackMode) {
         if (ship?.isSunk == true) return Colors.white;
@@ -224,6 +254,9 @@ class BattleshipGrid extends StatelessWidget {
       
         return [const Color.fromARGB(255, 0, 46, 12), const Color.fromARGB(255, 0, 25, 7)][(x+y) % 2];
       }
+
+      if (shot == Shot.hit) return Colors.red;
+      if (shot == Shot.miss) return Colors.lightBlue;
 
       if (ship !=null) return ship.isSunk ? Colors.black : shipColorMap[ship.type]!;
       return [const Color.fromARGB(255, 15, 44, 148), const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
@@ -239,11 +272,15 @@ class BattleshipGrid extends StatelessWidget {
 
         // Each cell is its own gesture detector, and updates individually
         // based on the corresponding grid cell's value. 
-        return Selector<Grid, GridContent?>(
-          selector: (_, grid) => GridContent(grid._shipGrid[x][y], grid._hitsGrid[x][y]) ,
+        return Selector<Grid, GridContent>(
+          selector: (_, grid) {
+            return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y], grid.underAttack.contains(Coord(x, y)));
+          },
           builder: (context, content, child) {
-            final ship = content?.ship;
-            final shot = content?.shot;
+            final ship = content.ship;
+            final shot = content.shot;
+            final underAttack = content.underAttack;
+
             return GestureDetector(
               onTap: (){
                 if (callback != null) {
@@ -254,7 +291,7 @@ class BattleshipGrid extends StatelessWidget {
                 color: getSquareColor(x, y, ship, shot),
                 alignment: Alignment.center,
                 margin: EdgeInsets.all(1),
-                child: Text('${{Shot.hit: 'hit', Shot.miss: 'miss', null: ''}[shot]}', style: TextStyle(backgroundColor: Colors.white),),
+                child: Text(underAttack ? 'attacked':'', style: TextStyle(backgroundColor: Colors.white),),
               ));
         });
       }));
