@@ -18,6 +18,10 @@ class Deck {
 
       deck.clear();
       deck.addAll(deckJson.map((cardJson) => GameCard.fromJson(cardJson)));
+      // Store card effects inside cards on creation
+      for (GameCard c in deck) {
+        c.effect = _getCardEffect(c);
+      }
     } catch (e) {
       throw Exception('Error initializing deck: $e');
     }
@@ -51,8 +55,8 @@ class Deck {
     throw Exception('Specified card not found.');
   }
 
-  /// Maps a GameCard callback string to an actual function
-  static VoidCallback getCardEffect(GameCard card) {
+  /// Maps a GameCard callback string to an existing function
+  static VoidCallback _getCardEffect(GameCard card) {
     final Map<String, VoidCallback> callbackMap = {
       "tacticalRepositioning": tacticalRepositioning,
       "volleyFire": volleyFire,
@@ -60,13 +64,14 @@ class Deck {
       "intelligence": intelligence,
     };
 
-    return callbackMap[card.callback] ??
+    return callbackMap[card.callbackString] ??
         () {
-          print("Unknown card effect: ${card.callback}");
+          print("Unknown card effect: ${card.callbackString}");
         };
   }
 
   /// Placeholder Callback Functions
+  /// TODO: move to separate file after implementation
   static void tacticalRepositioning() {
     print("Tactical Repositioning");
   }
@@ -81,5 +86,33 @@ class Deck {
 
   static void intelligence() {
     print("Intelligence");
+  }
+}
+
+
+// Glorified list with notifier.
+class Hand extends ChangeNotifier{
+  final List<GameCard> cards = [];
+  final Deck sourceDeck;
+
+  Hand({required this.sourceDeck});
+
+  void draw() {
+    cards.add(sourceDeck.draw());
+    notifyListeners();
+  }
+
+  void removeCard(GameCard card) {
+    cards.remove(card);
+    notifyListeners();
+  }
+
+  // TODO: we need to determine the right word to use everywhere.
+  // 'money' isn't great.
+  bool hasPlayableIntercepts(int money) {
+    for (GameCard card in cards){
+      if (card.type == CardType.intercept && card.price < money) return true;
+    }
+    return false;
   }
 }

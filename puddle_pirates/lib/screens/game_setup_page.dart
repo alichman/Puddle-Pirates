@@ -23,13 +23,11 @@ class _GameSetupState extends State<GameSetupPage> {
   Widget build(BuildContext context) {
     const shipSize = 45;
     final gameState = context.watch<GameState>();
-    final cPlayer = gameState.getCurrentPlayer();
     // Ensure game state can navigate
-    gameState.setContext(context);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Set up Board - ${cPlayer.name}"),
+        title: Text("Set up Board - ${gameState.currentPlayer.name}"),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -50,7 +48,7 @@ class _GameSetupState extends State<GameSetupPage> {
         children: [
           // Grid
           ChangeNotifierProvider.value(
-            value: cPlayer.grid,
+            value: gameState.currentPlayer.grid,
             child: Expanded(child: 
               Center(child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
@@ -60,7 +58,7 @@ class _GameSetupState extends State<GameSetupPage> {
                   }
                   // Try placing ship
                   try {
-                    cPlayer.grid.addShip(ships[selected!], square, isVert);
+                    gameState.currentPlayer.grid.addShip(ships[selected!], square, isVert);
                     setState(() {
                       callbackSuccess = true;
                       ships.removeAt(selected!);
@@ -98,12 +96,12 @@ class _GameSetupState extends State<GameSetupPage> {
               onPressed: () {
                 if (ships.isNotEmpty) return;
                 // uses index of cPlayer to check if other player is set up.
-                if (gameState.cPlayer == 0) {
+                if (gameState.cPlayerIndex == 0) {
                   ships = ShipType.values.map((t) => t).toList();
-                  gameState.toNextPlayer('/game_setup');
+                  gameState.toNextPlayer(context, '/game_setup');
                   return;
                 }
-                gameState.toNextPlayer('/game_page');
+                gameState.toNextPlayer(context, '/game_page');
               },
               child: const Text(
                 "Continue",

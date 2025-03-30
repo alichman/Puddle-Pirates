@@ -16,7 +16,7 @@ class PassingScreen extends StatelessWidget{
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Pass the device to ${gameState.getCurrentPlayer().name}',
+              'Pass the device to ${gameState.currentPlayer.name}',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 20),
