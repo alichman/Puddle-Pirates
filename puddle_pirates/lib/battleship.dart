@@ -7,15 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:puddle_pirates/ship.dart';
 
-
-enum ShipType {
-  destroyer,
-  battleship,
-  carrier,
-  submarine,
-  minesweeper,
-}
 
 enum Shot {
   hit,
@@ -51,48 +44,6 @@ class Coord {
   // Hashcode override: maps and such will place this based on the x and y components
   @override
   int get hashCode => x.hashCode ^ y.hashCode;
-}
-
-const shipLengthMap = {
-  ShipType.carrier: 5,
-  ShipType.battleship: 4,
-  ShipType.submarine: 3,
-  ShipType.destroyer: 3,
-  ShipType.minesweeper: 2
-};
-
-// Temporary display of ships.
-const Map<ShipType, Color> shipColorMap = {
-  ShipType.carrier: Color.fromARGB(255, 32, 91, 15),
-  ShipType.battleship: Color.fromARGB(255, 48, 186, 50),
-  ShipType.submarine: Color.fromARGB(255, 28, 111, 29),
-  ShipType.destroyer: Color.fromARGB(255, 86, 233, 88),
-  ShipType.minesweeper: Color.fromARGB(255, 81, 193, 83),
-};
-
-class Ship {
-  ShipType type;
-  Coord base;
-  bool vert;
-
-  Ship(this.type, this.base, this.vert);
-
-  bool isSunk = false;
-
-  List<Coord> getOccupiedSquares() {
-    final List<Coord> result = [];
-    int x = base.x, y = base.y;
-    for (int i=0; i < shipLengthMap[type]!; i++) {
-      result.add(Coord(x, y));
-      if(vert) {y ++;} else {x++;}
-    }
-    return result;
-  }
-
-  @override
-  String toString() {
-    return '$type at $base (${vert ? 'v' : 'h'})';
-  }
 }
 
 // Used for selectors based on all grid content.
@@ -236,6 +187,7 @@ class Grid extends ChangeNotifier{
 }
 
 
+
 class BattleshipGrid extends StatelessWidget {
   final bool attackMode;
   final void Function(Coord square)? callback;
@@ -257,43 +209,58 @@ class BattleshipGrid extends StatelessWidget {
 
       if (shot == Shot.hit) return Colors.red;
       if (shot == Shot.miss) return Colors.lightBlue;
+      if (ship != null) return Colors.green;
 
-      if (ship !=null) return ship.isSunk ? Colors.black : shipColorMap[ship.type]!;
       return [const Color.fromARGB(255, 15, 44, 148), const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
     }
 
     // Cenetered 10x10 grid. Size is handled externally.
-    return Center(child: GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
-      itemCount: gridSize*gridSize,
-      itemBuilder: (context, index) {
-        int y = index ~/ gridSize;
-        int x = index % gridSize;
+    // Layout builder used to get runtime square size
+    return LayoutBuilder(builder: (context, constraints) {
+      final squareSize = constraints.maxWidth / gridSize;
 
-        // Each cell is its own gesture detector, and updates individually
-        // based on the corresponding grid cell's value. 
-        return Selector<Grid, GridContent>(
-          selector: (_, grid) {
-            return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y], grid.underAttack.contains(Coord(x, y)));
-          },
-          builder: (context, content, child) {
-            final ship = content.ship;
-            final shot = content.shot;
-            final underAttack = content.underAttack;
+      return Center(child: Stack(children: [
+        GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
+          itemCount: gridSize*gridSize,
+          itemBuilder: (context, index) {
+            int y = index ~/ gridSize;
+            int x = index % gridSize;
 
-            return GestureDetector(
-              onTap: (){
-                if (callback != null) {
-                  callback!(Coord(x, y));
-                }
+            // Each cell is its own gesture detector, and updates individually
+            // based on the corresponding grid cell's value. 
+            return Selector<Grid, GridContent>(
+              selector: (_, grid) {
+                return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y], grid.underAttack.contains(Coord(x, y)));
               },
-              child: Container(
-                color: getSquareColor(x, y, ship, shot),
-                alignment: Alignment.center,
-                margin: EdgeInsets.all(1),
-                child: Text(underAttack ? 'attacked':'', style: TextStyle(backgroundColor: Colors.white),),
-              ));
-        });
-      }));
+              builder: (context, content, child) {
+                final ship = content.ship;
+                final shot = content.shot;
+                final underAttack = content.underAttack;
+
+                return GestureDetector(
+                  onTap: (){
+                    if (callback != null) {
+                      callback!(Coord(x, y));
+                    }
+                  },
+                  child: Container(
+                    color: getSquareColor(x, y, ship, shot),
+                    alignment: Alignment.center,
+                    margin: EdgeInsets.all(1),
+                    child: Text(underAttack ? 'attacked':'', style: TextStyle(backgroundColor: Colors.white),)
+                  ),
+                );
+            });
+        }),
+        // Ship images
+        if (!attackMode) Selector<Grid, List<Ship>>(
+          selector: (_, grid) => grid._ships,
+          builder: (context, ships, child) {
+            return Stack(children: ships.map<Widget>((s) => PositionedShipImage(squareSize: squareSize, ship: s)).toList());
+          }
+        )
+      ]));
+    }); 
   }
 }
