@@ -100,13 +100,10 @@ class GamePageState extends State<GamePage> {
                     child: BattleshipGrid(
                       attackMode: true,
                       callback: (square) {
-                        // Attack logic
-                        if (hasAttacked) return;
-                        // TODO: booster logic goes here
-                        gameState.opponent.grid.setAttack([square]);
-                        if (gameState.opponent.grid.checkLoss()) {
-                          _showWinningPopup(context);
-                          return;
+                        if (gameState.attackModifier != null) {
+                          gameState.attackModifier!(square);
+                        } else {
+                          gameState.opponent.grid.setAttack([square], clearCurrentAttacks: true);
                         }
                         setState(() => hasAttacked = true);
                       },
@@ -117,8 +114,13 @@ class GamePageState extends State<GamePage> {
 
               isInterceptPhase ? FloatingActionButton(
                 onPressed: () {
-                  gameState.currentPlayer.hand.draw();
+                  gameState.currentPlayer.hand.draw(cardName: "Volley Fire"); // TODO remove!!!!!
                   gameState.currentPlayer.grid.executeAttack();
+
+                  if (gameState.opponent.grid.checkLoss()) {
+                    _showWinningPopup(context);
+                    return;
+                  }
                   setState(() => isInterceptPhase = false);
                 },
                 child: Text('Done intercept')

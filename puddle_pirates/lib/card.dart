@@ -33,7 +33,7 @@ class GameCard {
     required this.callbackString,
   });
 
-  VoidCallback? effect;
+  void Function(BuildContext)? effect;
 
   /// Converts JSON data to a GameCard object.
   factory GameCard.fromJson(Map<String, dynamic> json) {
@@ -68,7 +68,7 @@ class CardWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!playable) return;
-        card.effect!();
+        card.effect!(context);
         if (callback != null) callback!();
       },
       child: Container(

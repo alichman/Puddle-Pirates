@@ -11,6 +11,9 @@ class GameState extends ChangeNotifier {
   List<Player> players = [];
 
   final gameDeck = Deck();
+  // Booster effects need to be moveable. They are only cleared
+  // after end of turn, when attack is finalized (see toNextPlayer).
+  void Function(Coord)? attackModifier;
 
   String? nextPath;
 
@@ -31,6 +34,12 @@ class GameState extends ChangeNotifier {
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
   void forceRefresh () => notifyListeners();
 
+  void setAttackModifier (void Function(Coord) mod) {
+    print('setting new mod');
+    attackModifier = mod;
+    notifyListeners();
+  }
+
   // Hides previous screen, and navigates to screenPath
   // Switches players. 
   // Do not notify listeners in here. That will update the grids
@@ -39,6 +48,7 @@ class GameState extends ChangeNotifier {
   void toNextPlayer(BuildContext context, String screenPath) {
     cPlayerIndex = 1 - cPlayerIndex;
     nextPath = screenPath;
+    attackModifier = null;
     Navigator.pushNamed(context, '/passing_screen');
   }
 }
