@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum CardType {
-  infrastructure,
-  booster,
-  intercept,
-  deployment
-}
+enum CardType { infrastructure, booster, intercept, deployment }
 
 const stringToCardTypeMap = {
   "Intercept": CardType.intercept,
@@ -41,7 +36,8 @@ class GameCard {
       id: json['id'],
       name: json['name'],
       price: json['price'],
-      type: stringToCardTypeMap[json['type']]!, // Unsafe intentionally. Game should crash if a JSON contains an impossible card.
+      type: stringToCardTypeMap[json[
+          'type']]!, // Unsafe intentionally. Game should crash if a JSON contains an impossible card.
       description: json['description'],
       probability: (json['probability'] as num).toDouble(),
       callbackString: json['callback'],
@@ -57,11 +53,11 @@ class CardWidget extends StatelessWidget {
 
   /// Requires the GameCard object, its callback function, and your function to remove the card when it is played.
   const CardWidget({
-      super.key,
-      required this.card,
-      this.callback,
-      this.playable = true,
-    });
+    super.key,
+    required this.card,
+    this.callback,
+    this.playable = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,15 +68,14 @@ class CardWidget extends StatelessWidget {
         if (callback != null) callback!();
       },
       child: Container(
-        margin: EdgeInsets.all(8.0),
-        padding: EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
-          color: playable ? Colors.white : Colors.grey,
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Column(children: [Text(card.name), Text('\$${card.price}')])
-      ),
+          margin: EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            color: playable ? Colors.white : Colors.grey,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Column(children: [Text(card.name), Text('\$${card.price}')])),
     );
   }
 }

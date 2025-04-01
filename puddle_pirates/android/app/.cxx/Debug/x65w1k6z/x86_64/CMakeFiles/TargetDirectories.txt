@@ -1,0 +1,2 @@
+C:/Users/kaele/Code Projects/Flutter/puddle-pirates/puddle_pirates/android/app/.cxx/Debug/x65w1k6z/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/kaele/Code Projects/Flutter/puddle-pirates/puddle_pirates/android/app/.cxx/Debug/x65w1k6z/x86_64/CMakeFiles/rebuild_cache.dir

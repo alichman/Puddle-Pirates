@@ -17,7 +17,10 @@ class GameState extends ChangeNotifier {
   // No AI Support yet.
   // Also resets game values.
   void setNewPlayers(String p1Name, String p2Name) {
-    players = [Player(name: p1Name, hand: Hand(sourceDeck: gameDeck)), Player(name: p2Name, hand: Hand(sourceDeck: gameDeck))];
+    players = [
+      Player(name: p1Name, hand: Hand(sourceDeck: gameDeck)),
+      Player(name: p2Name, hand: Hand(sourceDeck: gameDeck))
+    ];
     gameDeck.initialize();
     cPlayerIndex = 0;
     round = 0;
@@ -25,14 +28,14 @@ class GameState extends ChangeNotifier {
   }
 
   Player get currentPlayer => players[cPlayerIndex];
-  Player get opponent => players[1-cPlayerIndex];
+  Player get opponent => players[1 - cPlayerIndex];
 
   // Avoid using this if possible. This exists for when there's no other way
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
-  void forceRefresh () => notifyListeners();
+  void forceRefresh() => notifyListeners();
 
   // Hides previous screen, and navigates to screenPath
-  // Switches players. 
+  // Switches players.
   // Do not notify listeners in here. That will update the grids
   // before the passing screen is pushed. Listeners are notified in
   // the passing screen.
@@ -43,7 +46,7 @@ class GameState extends ChangeNotifier {
   }
 }
 
-class Player extends ChangeNotifier{
+class Player extends ChangeNotifier {
   String name;
   Hand hand;
   Player({required this.name, required this.hand});
