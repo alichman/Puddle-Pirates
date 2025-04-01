@@ -89,9 +89,8 @@ class Deck {
   }
 }
 
-
 // Glorified list with notifier.
-class Hand extends ChangeNotifier{
+class Hand extends ChangeNotifier {
   final List<GameCard> cards = [];
   final Deck sourceDeck;
 
@@ -110,7 +109,7 @@ class Hand extends ChangeNotifier{
   // TODO: we need to determine the right word to use everywhere.
   // 'money' isn't great.
   bool hasPlayableIntercepts(int money) {
-    for (GameCard card in cards){
+    for (GameCard card in cards) {
       if (card.type == CardType.intercept && card.price < money) return true;
     }
     return false;
