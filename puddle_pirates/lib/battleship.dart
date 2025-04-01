@@ -258,23 +258,18 @@ class BattleshipGrid extends StatelessWidget {
               selector: (_, grid) {
                 return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y]);
               },
-              builder: (context, content, child) {
-                final ship = content.ship;
-                final shot = content.shot;
-
-                return GestureDetector(
-                  onTap: (){
-                    if (callback != null) {
-                      callback!(Coord(x, y));
-                    }
-                  },
-                  child: Container(
-                    color: getSquareColor(x, y, ship, shot),
-                    alignment: Alignment.center,
-                    margin: attackMode ? EdgeInsets.all(1) : null
-                  ),
-                );
-            });
+              builder: (context, content, child) => GestureDetector(
+                onTap: (){
+                  if (callback != null) {
+                    callback!(Coord(x, y));
+                  }
+                },
+                child: Container(
+                  color: getSquareColor(x, y, content.ship, content.shot),
+                  alignment: Alignment.center,
+                  margin: attackMode ? EdgeInsets.all(1) : null
+                ),
+            ));
         }),
         // Ship images
         if (!attackMode) Selector<Grid, List<Ship>>(
