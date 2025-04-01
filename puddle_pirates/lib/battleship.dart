@@ -7,19 +7,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:puddle_pirates/ship.dart';
 
-
-enum ShipType {
-  destroyer,
-  battleship,
-  carrier,
-  submarine,
-  minesweeper,
-}
 
 enum Shot {
   hit,
-  miss
+  miss,
+  threat
 }
 
 // Defining our own Point class, since math Point uses num and we want to restrict to ints.
@@ -53,55 +47,12 @@ class Coord {
   int get hashCode => x.hashCode ^ y.hashCode;
 }
 
-const shipLengthMap = {
-  ShipType.carrier: 5,
-  ShipType.battleship: 4,
-  ShipType.submarine: 3,
-  ShipType.destroyer: 3,
-  ShipType.minesweeper: 2
-};
-
-// Temporary display of ships.
-const Map<ShipType, Color> shipColorMap = {
-  ShipType.carrier: Color.fromARGB(255, 32, 91, 15),
-  ShipType.battleship: Color.fromARGB(255, 48, 186, 50),
-  ShipType.submarine: Color.fromARGB(255, 28, 111, 29),
-  ShipType.destroyer: Color.fromARGB(255, 86, 233, 88),
-  ShipType.minesweeper: Color.fromARGB(255, 81, 193, 83),
-};
-
-class Ship {
-  ShipType type;
-  Coord base;
-  bool vert;
-
-  Ship(this.type, this.base, this.vert);
-
-  bool isSunk = false;
-
-  List<Coord> getOccupiedSquares() {
-    final List<Coord> result = [];
-    int x = base.x, y = base.y;
-    for (int i=0; i < shipLengthMap[type]!; i++) {
-      result.add(Coord(x, y));
-      if(vert) {y ++;} else {x++;}
-    }
-    return result;
-  }
-
-  @override
-  String toString() {
-    return '$type at $base (${vert ? 'v' : 'h'})';
-  }
-}
-
 // Used for selectors based on all grid content.
 class GridContent {
   final Ship? ship;
   final Shot? shot;
-  final bool underAttack;
 
-  GridContent(this.ship, this.shot, this.underAttack);
+  GridContent(this.ship, this.shot);
 }
 
 class Grid extends ChangeNotifier{
@@ -116,7 +67,7 @@ class Grid extends ChangeNotifier{
   final List<List<Ship?>> _shipGrid = List.generate(10, (_) => List.filled(10, null));
   final List<Ship> _ships = [];
   final List<List<Shot?>> _shotsGrid = List.generate(10, (_) => List.filled(10, null));
-  List<Coord> underAttack = [];
+  List<Coord> threatened = []; // List of 'threat' shots to avoid iterating over entire grid with every attack
 
   // Abstracted table access
   Ship? getShipFromSquare (Coord square) {
@@ -192,7 +143,7 @@ class Grid extends ChangeNotifier{
     for (Coord s in squares){
       s.validate();
       // Don't allow attacks on previous attacked squares.
-      if (getShotFromSquare(s) != null) throw Exception("Grid Error: Can't attack non-empty square");
+      if ([Shot.hit, Shot.miss].contains(getShotFromSquare(s))) throw Exception("Grid Error: Can't attack non-empty square");
 
       final hitShip = getShipFromSquare(s);
       if (hitShip == null) {
@@ -217,24 +168,57 @@ class Grid extends ChangeNotifier{
   // Validates each square, and removes invalid ones.
   // Attack executed by executeAttack() on the current player at that time.
   void setAttack (List<Coord> squares, {bool clearCurrentAttacks=true}){
-    if (clearCurrentAttacks) underAttack = [];
+    if (clearCurrentAttacks) threatened = [];
 
     for (Coord s in squares) {
       try {
         s.validate();
-        underAttack.add(s);
+        if (getShotFromSquare(s) == null) {
+          threatened.add(s);
+          _shotsGrid[s.x][s.y] = Shot.threat;
+        }
       } catch (e) {print(e);} // Expected error if part of an attack is out of range.
     }
     notifyListeners();
   }
 
   void executeAttack() {
-    attack(underAttack);
+    attack(threatened);
     // Attack notifies listeners. No need to do it again.
-    underAttack = [];
+    threatened = [];
   }
 }
 
+// Overlays a 1-gridsquare image at desired position.
+class PositionedMarker extends StatelessWidget{
+  final Coord base;
+  final Shot mark;
+  final double squareSize;
+  final bool ownGrid;
+
+  const PositionedMarker(this.base, this.squareSize, this.mark, this.ownGrid, {super.key});
+
+  static const Map<Shot, String> markPathMapOwn = {
+    Shot.hit: 'assets/images/markers/fireball.png',
+    Shot.miss: 'assets/images/markers/blueo.png',
+    Shot.threat: 'assets/images/markers/target.png'
+  };
+  static const Map<Shot, String> markPathMapOpp = {
+    Shot.hit: 'assets/images/markers/redx.png',
+    Shot.miss: 'assets/images/markers/blueo.png',
+    Shot.threat: 'assets/images/markers/target.png'
+  };
+  String get path => ownGrid ? markPathMapOwn[mark]! : markPathMapOpp[mark]!;
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    left: squareSize*base.x,
+    top: squareSize*base.y,
+    height: squareSize,
+    width: squareSize,
+    child: Image.asset(path, fit: BoxFit.contain),
+  );
+}
 
 class BattleshipGrid extends StatelessWidget {
   final bool attackMode;
@@ -248,52 +232,72 @@ class BattleshipGrid extends StatelessWidget {
     Color getSquareColor(int x, int y, Ship? ship, Shot? shot) {
       if (attackMode) {
         if (ship?.isSunk == true) return Colors.white;
-
-        if (shot == Shot.hit) return Colors.red;
-        if (shot == Shot.miss) return Colors.lightBlue;
-      
         return [const Color.fromARGB(255, 0, 46, 12), const Color.fromARGB(255, 0, 25, 7)][(x+y) % 2];
       }
-
-      if (shot == Shot.hit) return Colors.red;
-      if (shot == Shot.miss) return Colors.lightBlue;
-
-      if (ship !=null) return ship.isSunk ? Colors.black : shipColorMap[ship.type]!;
-      return [const Color.fromARGB(255, 15, 44, 148), const Color.fromARGB(255, 1, 44, 80)][(x+y) % 2];
+      // if (ship != null) return const Color.fromARGB(108, 76, 175, 79); // re-use this for pre-placement
+      return [const Color.fromARGB(77, 5, 44, 81), const Color.fromARGB(0, 0, 0, 0)][(x+y) % 2];
     }
 
-    // Cenetered 10x10 grid. Size is handled externally.
-    return Center(child: GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
-      itemCount: gridSize*gridSize,
-      itemBuilder: (context, index) {
-        int y = index ~/ gridSize;
-        int x = index % gridSize;
+    // Centered 10x10 grid. Size is handled externally.
+    // Layout builder used to get runtime square size
+    return LayoutBuilder(builder: (context, constraints) {
+      final squareSize = constraints.maxWidth / gridSize;
 
-        // Each cell is its own gesture detector, and updates individually
-        // based on the corresponding grid cell's value. 
-        return Selector<Grid, GridContent>(
-          selector: (_, grid) {
-            return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y], grid.underAttack.contains(Coord(x, y)));
-          },
-          builder: (context, content, child) {
-            final ship = content.ship;
-            final shot = content.shot;
-            final underAttack = content.underAttack;
+      return Center(child: Stack(children: [
+        if (!attackMode) Image.asset('assets/images/backdrops/water.jpg', height: squareSize*10, fit: BoxFit.fitHeight),
+        GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
+          itemCount: gridSize*gridSize,
+          itemBuilder: (context, index) {
+            int y = index ~/ gridSize;
+            int x = index % gridSize;
 
-            return GestureDetector(
-              onTap: (){
-                if (callback != null) {
-                  callback!(Coord(x, y));
-                }
+            // Each cell is its own gesture detector, and updates individually
+            // based on the corresponding grid cell's value. 
+            return Selector<Grid, GridContent>(
+              selector: (_, grid) {
+                return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y]);
               },
-              child: Container(
-                color: getSquareColor(x, y, ship, shot),
-                alignment: Alignment.center,
-                margin: EdgeInsets.all(1),
-                child: Text(underAttack ? 'attacked':'', style: TextStyle(backgroundColor: Colors.white),),
-              ));
-        });
-      }));
+              builder: (context, content, child) => GestureDetector(
+                onTap: (){
+                  if (callback != null) {
+                    callback!(Coord(x, y));
+                  }
+                },
+                child: Container(
+                  color: getSquareColor(x, y, content.ship, content.shot),
+                  alignment: Alignment.center,
+                  margin: attackMode ? EdgeInsets.all(1) : null
+                ),
+            ));
+        }),
+        // Ship images
+        if (!attackMode) Selector<Grid, List<Ship>>(
+          selector: (_, grid) => grid._ships,
+          builder: (context, ships, child) {
+            return Stack(children: ships.map<Widget>((s) => PositionedShipImage(squareSize: squareSize, ship: s)).toList());
+          }
+        ),
+        // Markers
+        Selector<Grid, List<List<Shot?>>>(
+          selector: (_, grid) => grid._shotsGrid,
+          builder: (context, shotGrid, child) {
+            final List<Widget> markers = [];
+
+            // Iterate over entire grid searching for shots
+            for (int x=0; x<10; x++) {
+              for (int y=0; y<10; y++) {
+                final s = shotGrid[x][y];
+                if (s != null) {
+                  markers.add(PositionedMarker(Coord(x, y), squareSize, s, !attackMode));
+                }
+              }
+            }
+
+            return Stack(children: markers);
+          }
+        )
+      ]));
+    }); 
   }
 }
