@@ -44,8 +44,9 @@ class GameState extends ChangeNotifier {
   // To target things (Some effects may require that you select multiple targets)
   // use the target list.
   void Function()? quickEffect;
-  List<Coord> _targetList = [];
+  List<Coord> targetList = [];
   String? targetPrompt;
+  bool Function(Coord)? validator;
 
   // The call made by a card's effect function
   void setQuickEffect(VoidCallback func) {
@@ -61,7 +62,7 @@ class GameState extends ChangeNotifier {
   // Called by widget at appropriate time
   void doQuickEffect({baseCall=true}) {
     if (quickEffect == null) return;
-    if(baseCall) _targetList = [];
+    if(baseCall) targetList = [];
     quickEffect!();
     // If requestTarget gets called, this is not the last iteration.
     if(targetPrompt != null) return;
@@ -70,9 +71,10 @@ class GameState extends ChangeNotifier {
   }
 
   // Prompt to widget
-  void requestTarget(String prompt, VoidCallback nextEffect) {
+  void requestTarget(String prompt, bool Function(Coord)? responseValidator, VoidCallback nextEffect) {
     targetPrompt = prompt;
     quickEffect = nextEffect;
+    validator = responseValidator;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
@@ -82,8 +84,9 @@ class GameState extends ChangeNotifier {
   // Response from widget
   void addTarget(Coord square) {
     if (targetPrompt == null) return;
+    if (validator != null && !validator!(square)) return; // Potential future refactor - return string error
 
-    _targetList.add(square);
+    targetList.add(square);
     targetPrompt = null;
     notifyListeners();
     doQuickEffect(baseCall: false);
@@ -91,7 +94,18 @@ class GameState extends ChangeNotifier {
 
   // To be used for error handling by card logic
   void removeLastTarget() {
-    _targetList.removeLast();
+    targetList.removeLast();
+  }
+
+  // Clear all values, return played card.
+  void cancelQuickEffect() {
+    quickEffect = null;
+    targetList = [];
+    targetPrompt = null;
+    validator = null;
+
+    currentPlayer.returnLastCardToHand();
+    notifyListeners();
   }
 
   // Hides previous screen, and navigates to screenPath
@@ -120,5 +134,9 @@ class Player extends ChangeNotifier{
     money -= amount;
     notifyListeners();
     return true;
+  }
+
+  void returnLastCardToHand() {
+    spend(hand.returnLastCard() * -1);
   }
 }

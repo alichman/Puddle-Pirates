@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/card.dart';
+import 'package:puddle_pirates/ship.dart';
 import 'package:puddle_pirates/states.dart';
 
 class Deck {
@@ -74,20 +75,44 @@ class Deck {
           print("Unknown card effect: ${card.callbackString}");
         };
   }
+  
+  /// Card callbacks
 
-  /// Placeholder Callback Functions
-  /// TODO: move to separate file after implementation
   static void tacticalRepositioning(BuildContext context) {
-    // 1 - one time effect basics
-    // 2 - moving ships
-    // 3 - put it all together
 
     final gameState = Provider.of<GameState>(context, listen:false);
 
     gameState.setQuickEffect(() {
-      print('--- Part 1');
-      gameState.requestTarget('Prompt test', () {
-        print('--- Part 2??');
+      final grid = gameState.currentPlayer.grid;
+      gameState.requestTarget('Tactical Repositioning: Select Ship',
+      // Check that selected square has a ship
+      (Coord square) => grid.getShipFromSquare(square) != null,
+      () {
+        final oldShip = grid.getShipFromSquare(
+          gameState.targetList[0]
+        )!;
+        gameState.requestTarget('Tactical Repositioning: Select empty spot',
+          // Check for space for the ship at selected spot
+          (Coord square) {
+            final newSquares = rebaseCoords(oldShip.getOccupiedSquares(), square);
+            if (newSquares == null) return false;
+            return grid.areSquaresEmpty(newSquares, checkHits: true);
+          },
+          () {
+            // Add new ship and transfer damage
+            final newShip = grid.addShip(oldShip.type, gameState.targetList[1], oldShip.vert);
+            grid.setHits(rebaseCoords(
+                oldShip.getOccupiedSquares().where((s) => grid.getShotFromSquare(s) == Shot.hit).toList(),
+                newShip.base,
+                forcedBase: oldShip.base
+              )!,
+              Shot.hit
+            );
+            // Clear old ship and hits
+            grid.removeShip(oldShip);
+            grid.setHits(oldShip.getOccupiedSquares()
+              .where((s) => grid.getShotFromSquare(s) != Shot.threat).toList(), null);
+          });
       });
     });
   }
@@ -123,6 +148,8 @@ class Hand extends ChangeNotifier{
 
   Hand({required this.sourceDeck});
 
+  GameCard? lastRemovedCard;
+
   // Optional cardName: draw specific card
   void draw({String? cardName, bool refresh=true}) {
     if (cardName != null) {
@@ -135,11 +162,20 @@ class Hand extends ChangeNotifier{
 
   void removeCard(GameCard card) {
     cards.remove(card);
+    lastRemovedCard = card;
     notifyListeners();
   }
 
-  // TODO: we need to determine the right word to use everywhere.
-  // 'money' isn't great.
+  // Adds the last-played card to hand.
+  // Returns cost of card
+  int returnLastCard() {
+    if (lastRemovedCard == null) return 0;
+    cards.add(lastRemovedCard!);
+    lastRemovedCard = null;
+    notifyListeners();
+    return cards.last.price;
+  }
+
   bool hasPlayableIntercepts(int money) {
     for (GameCard card in cards){
       if (card.type == CardType.intercept && card.price <= money) return true;

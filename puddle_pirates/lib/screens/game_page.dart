@@ -53,6 +53,7 @@ class GamePageState extends State<GamePage> {
     }
 
     bool isCardPlayable(GameCard card) {
+      if (gameState.quickEffect != null) return false;
       if (card.price > gameState.currentPlayer.money) return false;
       if (isInterceptPhase) return card.type == CardType.intercept;
       if (showAttackGrid) return card.type == CardType.booster;
@@ -139,9 +140,13 @@ class GamePageState extends State<GamePage> {
                 ),
               ))][showAttackGrid ? 1:0],
 
+              gameState.quickEffect != null ? FloatingActionButton(
+                onPressed: gameState.cancelQuickEffect,
+                child: const Text( 'Cancel')
+              ):
               isInterceptPhase ? FloatingActionButton(
-                onPressed: endInterceptPhase,
-                child: Text('Done intercept')
+                onPressed:  endInterceptPhase,
+                child: const Text('Done intercept')
               ): FloatingActionButton(
                 onPressed: () => setState(() => showAttackGrid = !showAttackGrid),
                 child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
