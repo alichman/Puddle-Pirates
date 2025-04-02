@@ -39,7 +39,6 @@ class GamePageState extends State<GamePage> {
   bool hasAttacked = false;
   bool isInterceptPhase = true;
   
-
   @override
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameState>(context);
@@ -54,12 +53,40 @@ class GamePageState extends State<GamePage> {
     }
 
     bool isCardPlayable(GameCard card) {
+      if (gameState.quickEffect != null) return false;
       if (card.price > gameState.currentPlayer.money) return false;
       if (isInterceptPhase) return card.type == CardType.intercept;
       if (showAttackGrid) return card.type == CardType.booster;
 
       return [CardType.deployment, CardType.infrastructure].contains(card.type);
     }
+
+    // Something about this function creates conflicts between setState and notifyListeners.
+    // Refreshing calls here must not refresh, as they may cause a crash.
+    // Unfortunately I don't have the time to properly invetigate this.
+    void endInterceptPhase() {
+      if (!isInterceptPhase || gameState.quickEffect != null) return;
+
+      gameState.currentPlayer.hand.draw(refresh: false);
+      gameState.currentPlayer.grid.executeAttack(refresh: false);
+      setState(() => isInterceptPhase = false);
+
+      if (gameState.opponent.grid.checkLoss()) {
+        _showWinningPopup(context);
+        return;
+      }
+    }
+
+    // Check for quick effects
+    if (gameState.quickEffect != null && gameState.targetPrompt == null) gameState.doQuickEffect();
+    
+    // Intercept phase auto-skip
+    if (isInterceptPhase &&
+      !gameState.currentPlayer.hand.hasPlayableIntercepts(
+        gameState.currentPlayer.money
+    )){
+      endInterceptPhase();
+    }    
 
     return Scaffold(
       appBar: AppBar(
@@ -77,7 +104,8 @@ class GamePageState extends State<GamePage> {
           // Main Game Content
           Column(
             children: [
-              // Battleship Grids
+              /// Battleship Grids
+              // own grid
               [Expanded(child: ChangeNotifierProvider.value(
                 value: gameState.currentPlayer.grid,
                 child: Center(
@@ -85,13 +113,13 @@ class GamePageState extends State<GamePage> {
                     width: MediaQuery.of(context).size.width * 0.95,
                     child: BattleshipGrid(
                       callback: (square) {
-                        print("Tapped on square: $square");
-                        // TODO: insert targeted card effect logic
+                        gameState.addTarget(square);
                       },
                     ),
                   ),
                 ),
               )),
+              // opponent grid
               Expanded(child: ChangeNotifierProvider.value(
                 value: gameState.opponent.grid,
                 child: Center(
@@ -100,13 +128,10 @@ class GamePageState extends State<GamePage> {
                     child: BattleshipGrid(
                       attackMode: true,
                       callback: (square) {
-                        // Attack logic
-                        if (hasAttacked) return;
-                        // TODO: booster logic goes here
-                        gameState.opponent.grid.setAttack([square]);
-                        if (gameState.opponent.grid.checkLoss()) {
-                          _showWinningPopup(context);
-                          return;
+                        if (gameState.attackModifier != null) {
+                          gameState.attackModifier!(square);
+                        } else {
+                          gameState.opponent.grid.setAttack([square], clearCurrentAttacks: true);
                         }
                         setState(() => hasAttacked = true);
                       },
@@ -115,13 +140,13 @@ class GamePageState extends State<GamePage> {
                 ),
               ))][showAttackGrid ? 1:0],
 
+              gameState.quickEffect != null ? FloatingActionButton(
+                onPressed: gameState.cancelQuickEffect,
+                child: const Text( 'Cancel')
+              ):
               isInterceptPhase ? FloatingActionButton(
-                onPressed: () {
-                  gameState.currentPlayer.hand.draw();
-                  gameState.currentPlayer.grid.executeAttack();
-                  setState(() => isInterceptPhase = false);
-                },
-                child: Text('Done intercept')
+                onPressed:  endInterceptPhase,
+                child: const Text('Done intercept')
               ): FloatingActionButton(
                 onPressed: () => setState(() => showAttackGrid = !showAttackGrid),
                 child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
@@ -161,7 +186,8 @@ class GamePageState extends State<GamePage> {
                   color: hasAttacked ? Colors.blue : Colors.grey,
                   child: Center(
                     child: Text(
-                      hasAttacked ? 'Click to Confirm Turn':'You have not attacked',
+                      gameState.targetPrompt ??
+                        (hasAttacked ? 'Click to Confirm Turn':'You have not attacked'),
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
