@@ -35,6 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   provider: ^6.1.2
+  wave: ^0.2.2
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +55,14 @@ dev_dependencies:
 flutter:
   assets:
     - assets/cards.json
+    - assets/images/oceanMenu.png
+  fonts:
+    - family: PirateFont
+      fonts:
+        - asset: assets/treasure-map-deadhand/Treamd.ttf
+    - family: PixelFont
+      fonts:
+        - asset: assets/pixel_pirate/pixel_pirate.ttf
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
