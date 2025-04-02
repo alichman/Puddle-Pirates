@@ -36,6 +36,10 @@ class Coord {
     }
   }
 
+  // Returns a new coordinate shifted by amount.
+  // rshift+ -> right | dShift+ -> down
+  Coord shift(int rShift, int dShift) => Coord(x+rShift, y+dShift);
+
   // Allow == comparison between coord objects
   @override
   bool operator == (Object other) =>
@@ -139,7 +143,7 @@ class Grid extends ChangeNotifier{
     return true;
   }
 
-  void attack (List<Coord> squares) {
+  void attack (List<Coord> squares, {bool refresh=true}) {
     for (Coord s in squares){
       s.validate();
       // Don't allow attacks on previous attacked squares.
@@ -153,7 +157,7 @@ class Grid extends ChangeNotifier{
         checkShipSink(hitShip);
       }
     }
-    notifyListeners();
+    if (refresh) notifyListeners();
   }
 
   // Sets hit values without additional logic. Not to be used for attacking.
@@ -168,7 +172,12 @@ class Grid extends ChangeNotifier{
   // Validates each square, and removes invalid ones.
   // Attack executed by executeAttack() on the current player at that time.
   void setAttack (List<Coord> squares, {bool clearCurrentAttacks=true}){
-    if (clearCurrentAttacks) threatened = [];
+    if (clearCurrentAttacks) {
+      for (Coord t in threatened) {
+        _shotsGrid[t.x][t.y] = null;
+      }
+      threatened = [];
+    }
 
     for (Coord s in squares) {
       try {
@@ -182,8 +191,8 @@ class Grid extends ChangeNotifier{
     notifyListeners();
   }
 
-  void executeAttack() {
-    attack(threatened);
+  void executeAttack({bool refresh=true}) {
+    attack(threatened, refresh: refresh);
     // Attack notifies listeners. No need to do it again.
     threatened = [];
   }
@@ -222,7 +231,7 @@ class PositionedMarker extends StatelessWidget{
 
 class BattleshipGrid extends StatelessWidget {
   final bool attackMode;
-  final void Function(Coord square)? callback;
+  final void Function(Coord)? callback;
   const BattleshipGrid({super.key, this.callback, this.attackMode=false});
 
   static const gridSize = 10;
