@@ -56,6 +56,9 @@ flutter:
   assets:
     - assets/cards.json
     - assets/images/oceanMenu.png
+    - assets/images/ships/
+    - assets/images/backdrops/
+    - assets/images/markers/
   fonts:
     - family: PirateFont
       fonts:
