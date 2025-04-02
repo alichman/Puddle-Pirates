@@ -67,7 +67,7 @@ class GamePageState extends State<GamePage> {
     void endInterceptPhase() {
       if (!isInterceptPhase || gameState.quickEffect != null) return;
 
-      gameState.currentPlayer.hand.draw(refresh: false, cardName: 'Tactical Repositioning');
+      gameState.currentPlayer.hand.draw(refresh: false);
       gameState.currentPlayer.grid.executeAttack(refresh: false);
       setState(() => isInterceptPhase = false);
 
