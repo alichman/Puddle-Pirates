@@ -49,7 +49,6 @@ class GameState extends ChangeNotifier {
 
   // The call made by a card's effect function
   void setQuickEffect(VoidCallback func) {
-    print("Quick effect set");
     quickEffect = func;
     notifyListeners();
   }
@@ -63,16 +62,15 @@ class GameState extends ChangeNotifier {
   void doQuickEffect({baseCall=true}) {
     if (quickEffect == null) return;
     if(baseCall) _targetList = [];
-    print('Doing quick effect');
     quickEffect!();
     // If requestTarget gets called, this is not the last iteration.
-    print('Quick effect done. prompt: $targetPrompt');
-    if(targetPrompt == null) quickEffect = null;
+    if(targetPrompt != null) return;
+    quickEffect = null;
+    notifyListeners();
   }
 
   // Prompt to widget
   void requestTarget(String prompt, VoidCallback nextEffect) {
-    print('prompting ui...');
     targetPrompt = prompt;
     quickEffect = nextEffect;
 
@@ -86,7 +84,6 @@ class GameState extends ChangeNotifier {
     if (targetPrompt == null) return;
 
     _targetList.add(square);
-    print('Adding target | $_targetList');
     targetPrompt = null;
     notifyListeners();
     doQuickEffect(baseCall: false);
@@ -95,7 +92,6 @@ class GameState extends ChangeNotifier {
   // To be used for error handling by card logic
   void removeLastTarget() {
     _targetList.removeLast();
-    print('removed last target | $_targetList');
   }
 
   // Hides previous screen, and navigates to screenPath

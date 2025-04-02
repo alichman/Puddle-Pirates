@@ -61,10 +61,10 @@ class GamePageState extends State<GamePage> {
     }
 
     // Something about this function creates conflicts between setState and notifyListeners.
-    // refreshing calls here must not refresh, as they may case a crash.
+    // Refreshing calls here must not refresh, as they may cause a crash.
     // Unfortunately I don't have the time to properly invetigate this.
     void endInterceptPhase() {
-      if (!isInterceptPhase) return;
+      if (!isInterceptPhase || gameState.quickEffect != null) return;
 
       gameState.currentPlayer.hand.draw(refresh: false, cardName: 'Tactical Repositioning');
       gameState.currentPlayer.grid.executeAttack(refresh: false);
@@ -112,7 +112,6 @@ class GamePageState extends State<GamePage> {
                     width: MediaQuery.of(context).size.width * 0.95,
                     child: BattleshipGrid(
                       callback: (square) {
-                        print('tapped $square');
                         gameState.addTarget(square);
                       },
                     ),

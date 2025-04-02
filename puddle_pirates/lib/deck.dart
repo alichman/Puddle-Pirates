@@ -142,7 +142,7 @@ class Hand extends ChangeNotifier{
   // 'money' isn't great.
   bool hasPlayableIntercepts(int money) {
     for (GameCard card in cards){
-      if (card.type == CardType.intercept && card.price < money) return true;
+      if (card.type == CardType.intercept && card.price <= money) return true;
     }
     return false;
   }

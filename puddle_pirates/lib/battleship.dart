@@ -247,12 +247,17 @@ class BattleshipGrid extends StatelessWidget {
       return [const Color.fromARGB(77, 5, 44, 81), const Color.fromARGB(0, 0, 0, 0)][(x+y) % 2];
     }
 
-    // Centered 10x10 grid. Size is handled externally.
-    // Layout builder used to get runtime square size
     return LayoutBuilder(builder: (context, constraints) {
       final squareSize = constraints.maxWidth / gridSize;
 
-      return Center(child: Stack(children: [
+      // Because ship and marker assets overlay the grid, we have to use an external gesture detector.
+      return Center(child: GestureDetector(
+        onTapDown: (TapDownDetails details){
+          if (callback == null) return;
+
+          callback!(Coord(details.localPosition.dx ~/ squareSize, details.localPosition.dy ~/ squareSize));
+        },
+        child: Stack(children: [
         if (!attackMode) Image.asset('assets/images/backdrops/water.jpg', height: squareSize*10, fit: BoxFit.fitHeight),
         GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
@@ -261,24 +266,16 @@ class BattleshipGrid extends StatelessWidget {
             int y = index ~/ gridSize;
             int x = index % gridSize;
 
-            // Each cell is its own gesture detector, and updates individually
-            // based on the corresponding grid cell's value. 
             return Selector<Grid, GridContent>(
               selector: (_, grid) {
                 return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y]);
               },
-              builder: (context, content, child) => GestureDetector(
-                onTap: (){
-                  if (callback != null) {
-                    callback!(Coord(x, y));
-                  }
-                },
-                child: Container(
+              builder: (context, content, child) => Container(
                   color: getSquareColor(x, y, content.ship, content.shot),
                   alignment: Alignment.center,
                   margin: attackMode ? EdgeInsets.all(1) : null
                 ),
-            ));
+            );
         }),
         // Ship images
         if (!attackMode) Selector<Grid, List<Ship>>(
@@ -306,7 +303,7 @@ class BattleshipGrid extends StatelessWidget {
             return Stack(children: markers);
           }
         )
-      ]));
+      ])));
     }); 
   }
 }
