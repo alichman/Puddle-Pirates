@@ -11,9 +11,7 @@ class GameState extends ChangeNotifier {
   List<Player> players = [];
 
   final gameDeck = Deck();
-  // Booster effects need to be moveable. They are only cleared
-  // after end of turn, when attack is finalized (see toNextPlayer).
-  void Function(Coord)? attackModifier;
+
 
   String? nextPath;
 
@@ -34,8 +32,79 @@ class GameState extends ChangeNotifier {
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
   void forceRefresh () => notifyListeners();
 
+  // Booster effects need to be moveable. They are only cleared
+  // after end of turn, when attack is finalized (see toNextPlayer).
+  void Function(Coord)? attackModifier;
   void setAttackModifier (void Function(Coord) mod) {
     attackModifier = mod;
+    notifyListeners();
+  }
+
+  // Unlike boosters, who always require a coord, quick effects take no coord.
+  // To target things (Some effects may require that you select multiple targets)
+  // use the target list.
+  void Function()? quickEffect;
+  List<Coord> targetList = [];
+  String? targetPrompt;
+  bool Function(Coord)? validator;
+
+  // The call made by a card's effect function
+  void setQuickEffect(VoidCallback func) {
+    quickEffect = func;
+    notifyListeners();
+  }
+
+  // Quick effects with targets are recursive with a trigger -
+  // When you call requestTarget, the callback you provide
+  // becomes the next quickEffect. This effect will go off once
+  // addTarget is called by a responding widget.
+  
+  // Called by widget at appropriate time
+  void doQuickEffect({baseCall=true}) {
+    if (quickEffect == null) return;
+    if(baseCall) targetList = [];
+    quickEffect!();
+    // If requestTarget gets called, this is not the last iteration.
+    if(targetPrompt != null) return;
+    quickEffect = null;
+    notifyListeners();
+  }
+
+  // Prompt to widget
+  void requestTarget(String prompt, bool Function(Coord)? responseValidator, VoidCallback nextEffect) {
+    targetPrompt = prompt;
+    quickEffect = nextEffect;
+    validator = responseValidator;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // Response from widget
+  void addTarget(Coord square) {
+    if (targetPrompt == null) return;
+    if (validator != null && !validator!(square)) return; // Potential future refactor - return string error
+
+    targetList.add(square);
+    targetPrompt = null;
+    notifyListeners();
+    doQuickEffect(baseCall: false);
+  }
+
+  // To be used for error handling by card logic
+  void removeLastTarget() {
+    targetList.removeLast();
+  }
+
+  // Clear all values, return played card.
+  void cancelQuickEffect() {
+    quickEffect = null;
+    targetList = [];
+    targetPrompt = null;
+    validator = null;
+
+    currentPlayer.returnLastCardToHand();
     notifyListeners();
   }
 
@@ -65,5 +134,9 @@ class Player extends ChangeNotifier{
     money -= amount;
     notifyListeners();
     return true;
+  }
+
+  void returnLastCardToHand() {
+    spend(hand.returnLastCard() * -1);
   }
 }

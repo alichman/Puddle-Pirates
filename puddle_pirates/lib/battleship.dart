@@ -51,6 +51,26 @@ class Coord {
   int get hashCode => x.hashCode ^ y.hashCode;
 }
 
+// returns new coords moved to new base, assuming first coord in list is the current base.
+// returns null if new coords are invalid.
+// forcedBase is an override for base for when your list doesn't have the transform origin.
+List<Coord>? rebaseCoords(List<Coord> squares, Coord newBase, {Coord? forcedBase}) {
+  if (squares.isEmpty) return [];
+  final oldBase = forcedBase ?? squares[0];
+
+  final xOffset = newBase.x - oldBase.x;
+  final yOffset = newBase.y - oldBase.y;
+
+  // Quickly check if coords are invalid by checking the last square.
+  try {
+    squares.last.shift(xOffset, yOffset).validate();
+  } catch (e) {
+    return null;
+  }
+
+  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();;
+}
+
 // Used for selectors based on all grid content.
 class GridContent {
   final Ship? ship;
@@ -84,33 +104,29 @@ class Grid extends ChangeNotifier{
     return _shotsGrid[square.x][square.y];
   }
 
-  // Checks line for any ships and hits, as specified by bools.
-  // Checks only ships by default.
-  bool isLineEmpty(Coord base, int len, bool vert, {bool checkShips=true, bool checkHits=false}) {
-    int x = base.x, y = base.y;
-    for (int i=0; i < len; i++) {
-      if(checkShips && getShipFromSquare(Coord(x, y)) != null) return false;
-      if(checkHits && getShotFromSquare(Coord(x, y)) != null) return false;
-      if(vert) {y ++;} else {x++;}
+  // Shortcut to checking multiple squares at once for any kind of content.
+  bool areSquaresEmpty(List<Coord> squares, {bool checkShips=true, bool checkHits=false}) {
+    for (Coord s in squares) {
+      if (checkShips && getShipFromSquare(s) != null) return false;
+      if (checkHits && getShotFromSquare(s) != null) return false;
     }
     return true;
   }
 
-  void addShip (ShipType type, Coord base, bool vert) {
-    // Validate position
-    if (!isLineEmpty(base, shipLengthMap[type]!, vert, checkHits: true)) throw Exception('Grid Error: Line not empty');
-    
+  Ship addShip (ShipType type, Coord base, bool vert) {
     // Add ship to grid and ships array
     final ship = Ship(type, base, vert);
-    final shipLen = shipLengthMap[type]!;
+    // Validate position
+    if (!areSquaresEmpty(ship.getOccupiedSquares())) throw Exception('Grid Error: Line not empty');
 
     int x = base.x, y = base.y;
-    for (int i=0; i < shipLen; i++) {
+    for (int i=0; i < shipLengthMap[type]!; i++) {
       _shipGrid[x][y] = ship;
       if(vert) {y ++;} else {x++;}
     }
     _ships.add(ship);
     notifyListeners();
+    return ship;
   }
 
   void removeShip (Ship? ship) {
@@ -247,12 +263,24 @@ class BattleshipGrid extends StatelessWidget {
       return [const Color.fromARGB(77, 5, 44, 81), const Color.fromARGB(0, 0, 0, 0)][(x+y) % 2];
     }
 
-    // Centered 10x10 grid. Size is handled externally.
-    // Layout builder used to get runtime square size
     return LayoutBuilder(builder: (context, constraints) {
       final squareSize = constraints.maxWidth / gridSize;
 
-      return Center(child: Stack(children: [
+      // Because ship and marker assets overlay the grid, we have to use an external gesture detector.
+      return Center(child: GestureDetector(
+        onTapDown: (TapDownDetails details){
+          if (callback == null) return;
+          
+          final tapped = Coord(details.localPosition.dx ~/ squareSize, details.localPosition.dy ~/ squareSize);
+          try {
+            tapped.validate();
+          } catch (e) {
+            return;
+          }
+
+          callback!(tapped);
+        },
+        child: Stack(children: [
         if (!attackMode) Image.asset('assets/images/backdrops/water.jpg', height: squareSize*10, fit: BoxFit.fitHeight),
         GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
@@ -261,24 +289,16 @@ class BattleshipGrid extends StatelessWidget {
             int y = index ~/ gridSize;
             int x = index % gridSize;
 
-            // Each cell is its own gesture detector, and updates individually
-            // based on the corresponding grid cell's value. 
             return Selector<Grid, GridContent>(
               selector: (_, grid) {
                 return GridContent(grid._shipGrid[x][y], grid._shotsGrid[x][y]);
               },
-              builder: (context, content, child) => GestureDetector(
-                onTap: (){
-                  if (callback != null) {
-                    callback!(Coord(x, y));
-                  }
-                },
-                child: Container(
+              builder: (context, content, child) => Container(
                   color: getSquareColor(x, y, content.ship, content.shot),
                   alignment: Alignment.center,
                   margin: attackMode ? EdgeInsets.all(1) : null
                 ),
-            ));
+            );
         }),
         // Ship images
         if (!attackMode) Selector<Grid, List<Ship>>(
@@ -306,7 +326,7 @@ class BattleshipGrid extends StatelessWidget {
             return Stack(children: markers);
           }
         )
-      ]));
+      ])));
     }); 
   }
 }
