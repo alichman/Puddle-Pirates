@@ -113,13 +113,13 @@ class Hand extends ChangeNotifier{
   Hand({required this.sourceDeck});
 
   // Optional cardName: draw specific card
-  void draw({String? cardName}) {
+  void draw({String? cardName, bool refresh=true}) {
     if (cardName != null) {
       cards.add(sourceDeck.give(cardName));
     } else {
       cards.add(sourceDeck.draw());
     }
-    notifyListeners();
+    if (refresh) notifyListeners();
   }
 
   void removeCard(GameCard card) {

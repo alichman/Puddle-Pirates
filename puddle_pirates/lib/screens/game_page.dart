@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/card.dart';
@@ -39,7 +40,6 @@ class GamePageState extends State<GamePage> {
   bool hasAttacked = false;
   bool isInterceptPhase = true;
   
-
   @override
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameState>(context);
@@ -60,6 +60,30 @@ class GamePageState extends State<GamePage> {
 
       return [CardType.deployment, CardType.infrastructure].contains(card.type);
     }
+
+    // Something about this function creates conflicts between setState and notifyListeners.
+    // refreshing calls here must not refresh, as they may case a crash.
+    // Unfortunately I don't have the time to properly invetigate this.
+    void endInterceptPhase() {
+      if (!isInterceptPhase) return;
+
+      gameState.currentPlayer.hand.draw(refresh: false);
+      gameState.currentPlayer.grid.executeAttack(refresh: false);
+      setState(() => isInterceptPhase = false);
+
+      if (gameState.opponent.grid.checkLoss()) {
+        _showWinningPopup(context);
+        return;
+      }
+    }  
+
+    // Intercept phase auto-skip
+    if (isInterceptPhase &&
+      !gameState.currentPlayer.hand.hasPlayableIntercepts(
+        gameState.currentPlayer.money
+    )){
+      endInterceptPhase();
+    }    
 
     return Scaffold(
       appBar: AppBar(
@@ -113,16 +137,7 @@ class GamePageState extends State<GamePage> {
               ))][showAttackGrid ? 1:0],
 
               isInterceptPhase ? FloatingActionButton(
-                onPressed: () {
-                  gameState.currentPlayer.hand.draw(cardName: "Volley Fire"); // TODO remove!!!!!
-                  gameState.currentPlayer.grid.executeAttack();
-
-                  if (gameState.opponent.grid.checkLoss()) {
-                    _showWinningPopup(context);
-                    return;
-                  }
-                  setState(() => isInterceptPhase = false);
-                },
+                onPressed: endInterceptPhase,
                 child: Text('Done intercept')
               ): FloatingActionButton(
                 onPressed: () => setState(() => showAttackGrid = !showAttackGrid),

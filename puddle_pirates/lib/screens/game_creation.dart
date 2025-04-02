@@ -127,15 +127,18 @@ class GameCreationScreenState extends State<GameCreationScreen> {
                     ),
                     onPressed: () {
                       final gameState = Provider.of<GameState>(context, listen: false);
-
+                        String formatPlayerName(String text, int pNum) {
+                          if (text.isEmpty) return 'Player #$pNum';
+                          return text;
+                        }
                         if (_selectedMode == GameMode.twoPlayer) {
                           gameState.setNewPlayers(
-                            _player1Controller.text,
-                            _player2Controller.text,
+                            formatPlayerName(_player1Controller.text, 1),
+                            formatPlayerName(_player2Controller.text, 2),
                           );
                         } else if (_selectedMode == GameMode.ai) {
                           gameState.setNewPlayers(
-                            _playerNameController.text,
+                            formatPlayerName(_playerNameController.text, 1),
                             "AI", // Default AI name
                           );
                         }

@@ -143,7 +143,7 @@ class Grid extends ChangeNotifier{
     return true;
   }
 
-  void attack (List<Coord> squares) {
+  void attack (List<Coord> squares, {bool refresh=true}) {
     for (Coord s in squares){
       s.validate();
       // Don't allow attacks on previous attacked squares.
@@ -157,7 +157,7 @@ class Grid extends ChangeNotifier{
         checkShipSink(hitShip);
       }
     }
-    notifyListeners();
+    if (refresh) notifyListeners();
   }
 
   // Sets hit values without additional logic. Not to be used for attacking.
@@ -178,7 +178,6 @@ class Grid extends ChangeNotifier{
       }
       threatened = [];
     }
-    print(threatened);
 
     for (Coord s in squares) {
       try {
@@ -192,8 +191,8 @@ class Grid extends ChangeNotifier{
     notifyListeners();
   }
 
-  void executeAttack() {
-    attack(threatened);
+  void executeAttack({bool refresh=true}) {
+    attack(threatened, refresh: refresh);
     // Attack notifies listeners. No need to do it again.
     threatened = [];
   }

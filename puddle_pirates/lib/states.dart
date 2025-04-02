@@ -35,7 +35,6 @@ class GameState extends ChangeNotifier {
   void forceRefresh () => notifyListeners();
 
   void setAttackModifier (void Function(Coord) mod) {
-    print('setting new mod');
     attackModifier = mod;
     notifyListeners();
   }
