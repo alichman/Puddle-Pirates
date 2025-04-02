@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
+import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/card.dart';
+import 'package:puddle_pirates/states.dart';
 
 class Deck {
   final List<GameCard> deck = [];
@@ -45,6 +48,8 @@ class Deck {
     throw Exception('Unexpected draw error.');
   }
 
+  // TODO: String param here isn't great.
+  // We should probably have an enum with all card names.
   /// Gives a specific card to the player.
   GameCard give(String cardName) {
     for (var card in deck) {
@@ -56,8 +61,8 @@ class Deck {
   }
 
   /// Maps a GameCard callback string to an existing function
-  static VoidCallback _getCardEffect(GameCard card) {
-    final Map<String, VoidCallback> callbackMap = {
+  static void Function(BuildContext) _getCardEffect(GameCard card) {
+    final Map<String, void Function(BuildContext)> callbackMap = {
       "tacticalRepositioning": tacticalRepositioning,
       "volleyFire": volleyFire,
       "repairCrew": repairCrew,
@@ -65,26 +70,36 @@ class Deck {
     };
 
     return callbackMap[card.callbackString] ??
-        () {
+        (BuildContext context) {
           print("Unknown card effect: ${card.callbackString}");
         };
   }
 
   /// Placeholder Callback Functions
   /// TODO: move to separate file after implementation
-  static void tacticalRepositioning() {
+  static void tacticalRepositioning(BuildContext context) {
     print("Tactical Repositioning");
   }
 
-  static void volleyFire() {
-    print("Volley Fire");
+  static void volleyFire(BuildContext context) {
+    final gameState = Provider.of<GameState>(context, listen:false);
+
+    gameState.setAttackModifier((Coord target) {
+      // Select a diamond region around target
+      final List<Coord> squares = [
+                    target.shift(0,-1),
+        target.shift(1, 0), target, target.shift (-1, 0),
+                    target.shift(0,1)
+      ];
+      gameState.opponent.grid.setAttack(squares);
+    });
   }
 
-  static void repairCrew() {
+  static void repairCrew(BuildContext context) {
     print("Repair Crew");
   }
 
-  static void intelligence() {
+  static void intelligence(BuildContext context) {
     print("Intelligence");
   }
 }
@@ -97,9 +112,14 @@ class Hand extends ChangeNotifier{
 
   Hand({required this.sourceDeck});
 
-  void draw() {
-    cards.add(sourceDeck.draw());
-    notifyListeners();
+  // Optional cardName: draw specific card
+  void draw({String? cardName, bool refresh=true}) {
+    if (cardName != null) {
+      cards.add(sourceDeck.give(cardName));
+    } else {
+      cards.add(sourceDeck.draw());
+    }
+    if (refresh) notifyListeners();
   }
 
   void removeCard(GameCard card) {
