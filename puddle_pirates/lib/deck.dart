@@ -87,9 +87,9 @@ class Deck {
     gameState.setAttackModifier((Coord target) {
       // Select a diamond region around target
       final List<Coord> squares = [
-        target.shift(0,-1),
-        target, target.shift(1, 0), target.shift (-1, 0),
-        target.shift(0,1)
+                    target.shift(0,-1),
+        target.shift(1, 0), target, target.shift (-1, 0),
+                    target.shift(0,1)
       ];
       gameState.opponent.grid.setAttack(squares);
     });

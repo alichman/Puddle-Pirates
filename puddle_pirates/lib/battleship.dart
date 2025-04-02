@@ -36,7 +36,7 @@ class Coord {
     }
   }
 
-  // Retruns a new coordinate shifted by amount.
+  // Returns a new coordinate shifted by amount.
   // rshift+ -> right | dShift+ -> down
   Coord shift(int rShift, int dShift) => Coord(x+rShift, y+dShift);
 
