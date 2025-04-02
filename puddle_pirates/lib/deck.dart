@@ -78,7 +78,18 @@ class Deck {
   /// Placeholder Callback Functions
   /// TODO: move to separate file after implementation
   static void tacticalRepositioning(BuildContext context) {
-    print("Tactical Repositioning");
+    // 1 - one time effect basics
+    // 2 - moving ships
+    // 3 - put it all together
+
+    final gameState = Provider.of<GameState>(context, listen:false);
+
+    gameState.setQuickEffect(() {
+      print('--- Part 1');
+      gameState.requestTarget('Prompt test', () {
+        print('--- Part 2??');
+      });
+    });
   }
 
   static void volleyFire(BuildContext context) {

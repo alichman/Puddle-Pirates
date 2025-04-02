@@ -11,9 +11,7 @@ class GameState extends ChangeNotifier {
   List<Player> players = [];
 
   final gameDeck = Deck();
-  // Booster effects need to be moveable. They are only cleared
-  // after end of turn, when attack is finalized (see toNextPlayer).
-  void Function(Coord)? attackModifier;
+
 
   String? nextPath;
 
@@ -34,9 +32,70 @@ class GameState extends ChangeNotifier {
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
   void forceRefresh () => notifyListeners();
 
+  // Booster effects need to be moveable. They are only cleared
+  // after end of turn, when attack is finalized (see toNextPlayer).
+  void Function(Coord)? attackModifier;
   void setAttackModifier (void Function(Coord) mod) {
     attackModifier = mod;
     notifyListeners();
+  }
+
+  // Unlike boosters, who always require a coord, quick effects take no coord.
+  // To target things (Some effects may require that you select multiple targets)
+  // use the target list.
+  void Function()? quickEffect;
+  List<Coord> _targetList = [];
+  String? targetPrompt;
+
+  // The call made by a card's effect function
+  void setQuickEffect(VoidCallback func) {
+    print("Quick effect set");
+    quickEffect = func;
+    notifyListeners();
+  }
+
+  // Quick effects with targets are recursive with a trigger -
+  // When you call requestTarget, the callback you provide
+  // becomes the next quickEffect. This effect will go off once
+  // addTarget is called by a responding widget.
+  
+  // Called by widget at appropriate time
+  void doQuickEffect({baseCall=true}) {
+    if (quickEffect == null) return;
+    if(baseCall) _targetList = [];
+    print('Doing quick effect');
+    quickEffect!();
+    // If requestTarget gets called, this is not the last iteration.
+    print('Quick effect done. prompt: $targetPrompt');
+    if(targetPrompt == null) quickEffect = null;
+  }
+
+  // Prompt to widget
+  void requestTarget(String prompt, VoidCallback nextEffect) {
+    print('prompting ui...');
+    targetPrompt = prompt;
+    quickEffect = nextEffect;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  // Response from widget
+  void addTarget(Coord square) {
+    if (targetPrompt == null) return;
+
+    _targetList.add(square);
+    print('Adding target | $_targetList');
+    targetPrompt = null;
+    notifyListeners();
+    doQuickEffect(baseCall: false);
+  }
+
+  // To be used for error handling by card logic
+  void removeLastTarget() {
+    _targetList.removeLast();
+    print('removed last target | $_targetList');
   }
 
   // Hides previous screen, and navigates to screenPath

@@ -66,7 +66,7 @@ class GamePageState extends State<GamePage> {
     void endInterceptPhase() {
       if (!isInterceptPhase) return;
 
-      gameState.currentPlayer.hand.draw(refresh: false);
+      gameState.currentPlayer.hand.draw(refresh: false, cardName: 'Tactical Repositioning');
       gameState.currentPlayer.grid.executeAttack(refresh: false);
       setState(() => isInterceptPhase = false);
 
@@ -74,8 +74,11 @@ class GamePageState extends State<GamePage> {
         _showWinningPopup(context);
         return;
       }
-    }  
+    }
 
+    // Check for quick effects
+    if (gameState.quickEffect != null && gameState.targetPrompt == null) gameState.doQuickEffect();
+    
     // Intercept phase auto-skip
     if (isInterceptPhase &&
       !gameState.currentPlayer.hand.hasPlayableIntercepts(
@@ -100,7 +103,8 @@ class GamePageState extends State<GamePage> {
           // Main Game Content
           Column(
             children: [
-              // Battleship Grids
+              /// Battleship Grids
+              // own grid
               [Expanded(child: ChangeNotifierProvider.value(
                 value: gameState.currentPlayer.grid,
                 child: Center(
@@ -108,13 +112,14 @@ class GamePageState extends State<GamePage> {
                     width: MediaQuery.of(context).size.width * 0.95,
                     child: BattleshipGrid(
                       callback: (square) {
-                        print("Tapped on square: $square");
-                        // TODO: insert targeted card effect logic
+                        print('tapped $square');
+                        gameState.addTarget(square);
                       },
                     ),
                   ),
                 ),
               )),
+              // opponent grid
               Expanded(child: ChangeNotifierProvider.value(
                 value: gameState.opponent.grid,
                 child: Center(
@@ -177,7 +182,8 @@ class GamePageState extends State<GamePage> {
                   color: hasAttacked ? Colors.blue : Colors.grey,
                   child: Center(
                     child: Text(
-                      hasAttacked ? 'Click to Confirm Turn':'You have not attacked',
+                      gameState.targetPrompt ??
+                        (hasAttacked ? 'Click to Confirm Turn':'You have not attacked'),
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
