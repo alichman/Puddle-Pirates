@@ -68,7 +68,7 @@ List<Coord>? rebaseCoords(List<Coord> squares, Coord newBase, {Coord? forcedBase
     return null;
   }
 
-  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();;
+  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();
 }
 
 // Used for selectors based on all grid content.
@@ -283,6 +283,7 @@ class BattleshipGrid extends StatelessWidget {
         child: Stack(children: [
         if (!attackMode) Image.asset('assets/images/backdrops/water.jpg', height: squareSize*10, fit: BoxFit.fitHeight),
         GridView.builder(
+          padding: EdgeInsets.zero,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
           itemCount: gridSize*gridSize,
           itemBuilder: (context, index) {
