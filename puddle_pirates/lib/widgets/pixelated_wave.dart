@@ -79,9 +79,9 @@ class PixelatedWavePainter extends CustomPainter {
 
     for (int layer = 0; layer < waveColors.length; layer++) {
       final paint = Paint()..color = Color.fromRGBO(
-          waveColors[layer].red,
-          waveColors[layer].green,
-          waveColors[layer].blue,
+          waveColors[layer].r.toInt(),
+          waveColors[layer].g.toInt(),
+          waveColors[layer].b.toInt(),
           1 - (layer * 0.2),
         );
 

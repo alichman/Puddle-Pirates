@@ -283,6 +283,7 @@ class BattleshipGrid extends StatelessWidget {
         child: Stack(children: [
         if (!attackMode) Image.asset('assets/images/backdrops/water.jpg', height: squareSize*10, fit: BoxFit.fitHeight),
         GridView.builder(
+          padding: EdgeInsets.zero,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: gridSize),
           itemCount: gridSize*gridSize,
           itemBuilder: (context, index) {
