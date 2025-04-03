@@ -47,7 +47,13 @@ class PuddlePiratesApp extends StatelessWidget {
             color: Colors.white,
             fontWeight: FontWeight.bold,
           )
-        )
+        ),
+        
+        scaffoldBackgroundColor: const Color.fromARGB(255, 21, 108, 178),
+        appBarTheme: AppBarTheme(
+          color: const Color.fromARGB(255, 13, 68, 112),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
       ),
       initialRoute: '/', // Starts at Main Menu
       routes: {

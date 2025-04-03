@@ -28,7 +28,8 @@ class _GameSetupState extends State<GameSetupPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Set up Board - ${gameState.currentPlayer.name}"),
+        title: Text("Set up - ${gameState.currentPlayer.name}",
+        style: Theme.of(context).textTheme.bodyMedium,),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
