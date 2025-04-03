@@ -13,28 +13,6 @@ class GamePage extends StatefulWidget {
 }
 
 class GamePageState extends State<GamePage> {
-  void _showWinningPopup(BuildContext context) {
-    final gameState = Provider.of<GameState>(context, listen: false);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Game Over'),
-          content: Text('${gameState.currentPlayer.name} Wins!'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Back to home page'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed('/');
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   bool showAttackGrid = false;
   bool hasAttacked = false;
   bool isInterceptPhase = true;
@@ -71,10 +49,11 @@ class GamePageState extends State<GamePage> {
       gameState.currentPlayer.grid.executeAttack(refresh: false);
       setState(() => isInterceptPhase = false);
 
-      if (gameState.opponent.grid.checkLoss()) {
-        _showWinningPopup(context);
-        return;
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (gameState.currentPlayer.grid.checkLoss()) {
+          Navigator.pushNamed(context, '/game_end_screen');
+        }
+      });
     }
 
     // Check for quick effects
@@ -86,7 +65,9 @@ class GamePageState extends State<GamePage> {
         gameState.currentPlayer.money
     )){
       endInterceptPhase();
-    }    
+    }
+
+    
 
     return Scaffold(
       appBar: AppBar(
@@ -208,7 +189,7 @@ class GamePageState extends State<GamePage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: () => _showWinningPopup(context),
+                  onPressed: () => Navigator.pushNamed(context, '/game_end_screen'),
                   child: const Text("Test Winning Screen"),
                 ),
               ),

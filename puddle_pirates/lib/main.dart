@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:puddle_pirates/screens/game_end.dart';
 import 'package:puddle_pirates/screens/game_setup_page.dart';
 import 'package:puddle_pirates/screens/main_menu.dart';
 import 'package:puddle_pirates/screens/game_creation.dart';
@@ -38,6 +39,7 @@ class PuddlePiratesApp extends StatelessWidget {
         '/settings': (context) => const SettingsScreen(),
         '/game_page': (context) => const GamePage(),
         '/passing_screen': (context) => PassingScreen(),
+        '/game_end_screen': (context) => const EndScreen()
       },
     );
   }
