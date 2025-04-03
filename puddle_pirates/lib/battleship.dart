@@ -249,7 +249,8 @@ class BattleshipGrid extends StatelessWidget {
   final bool attackMode;
   final void Function(Coord)? callback;
   final Widget? overlay;
-  const BattleshipGrid({super.key, this.callback, this.attackMode=false, this.overlay});
+  final void Function(bool isRight)? onSwipe;
+  const BattleshipGrid({super.key, this.callback, this.attackMode=false, this.overlay, this.onSwipe});
 
   static const gridSize = 10;
 
@@ -263,12 +264,20 @@ class BattleshipGrid extends StatelessWidget {
       // if (ship != null) return const Color.fromARGB(108, 76, 175, 79); // re-use this for pre-placement
       return [const Color.fromARGB(77, 5, 44, 81), const Color.fromARGB(0, 0, 0, 0)][(x+y) % 2];
     }
+    double startPosition = 0;
 
     return LayoutBuilder(builder: (context, constraints) {
       final squareSize = constraints.maxWidth / gridSize;
 
       // Because ship and marker assets overlay the grid, we have to use an external gesture detector.
       return Center(child: GestureDetector(
+        onHorizontalDragStart: (details) => startPosition = details.localPosition.dx,
+        onHorizontalDragEnd: (details) {
+          final delta = details.localPosition.dx - startPosition;
+          print(delta);
+          if (onSwipe == null ||delta.abs() < 100) return;
+          onSwipe!(delta > 0);
+        },
         onTapDown: (TapDownDetails details){
           if (callback == null) return;
           

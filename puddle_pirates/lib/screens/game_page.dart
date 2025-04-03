@@ -101,6 +101,9 @@ class GamePageState extends State<GamePage> {
                         }
                         gameState.addTarget(square);
                       },
+                      onSwipe: (isRight) {
+                        setState(() => showAttackGrid = true);
+                      }
                     ),
                   ),
                 ),
@@ -121,6 +124,9 @@ class GamePageState extends State<GamePage> {
                         }
                         setState(() => hasAttacked = true);
                       },
+                      onSwipe: (isRight) {
+                        setState(() => showAttackGrid = false);
+                      }
                     ),
                   ),
                 ),
@@ -133,10 +139,7 @@ class GamePageState extends State<GamePage> {
               isInterceptPhase ? FloatingActionButton(
                 onPressed:  endInterceptPhase,
                 child: const Text('Done intercept')
-              ): FloatingActionButton(
-                onPressed: () => setState(() => showAttackGrid = !showAttackGrid),
-                child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
-              ),
+              ): SizedBox.shrink(),
 
               Selector<GameState, int>(
                 selector: (_, g) => g.currentPlayer.money,
