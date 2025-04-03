@@ -31,7 +31,6 @@ class PixelButton extends StatelessWidget {
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 20,
               fontFamily: "PixelFont",
               color: Colors.white,
               fontWeight: FontWeight.bold,
