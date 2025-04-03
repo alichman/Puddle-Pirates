@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/states.dart';
-import 'package:puddle_pirates/widgets/exit_button.dart';
 import 'package:puddle_pirates/widgets/pixel_button.dart';
 
 class EndScreen extends StatelessWidget {

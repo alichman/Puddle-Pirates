@@ -68,7 +68,7 @@ List<Coord>? rebaseCoords(List<Coord> squares, Coord newBase, {Coord? forcedBase
     return null;
   }
 
-  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();;
+  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();
 }
 
 // Used for selectors based on all grid content.
