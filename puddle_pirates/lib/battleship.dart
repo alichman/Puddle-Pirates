@@ -274,7 +274,6 @@ class BattleshipGrid extends StatelessWidget {
         onHorizontalDragStart: (details) => startPosition = details.localPosition.dx,
         onHorizontalDragEnd: (details) {
           final delta = details.localPosition.dx - startPosition;
-          print(delta);
           if (onSwipe == null ||delta.abs() < 100) return;
           onSwipe!(delta > 0);
         },

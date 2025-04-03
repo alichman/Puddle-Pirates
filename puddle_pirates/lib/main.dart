@@ -46,6 +46,11 @@ class PuddlePiratesApp extends StatelessWidget {
             fontFamily: "PixelFont",
             color: Colors.white,
             fontWeight: FontWeight.bold,
+          ),
+          bodySmall:  const TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontWeight: FontWeight.normal,
           )
         ),
         
