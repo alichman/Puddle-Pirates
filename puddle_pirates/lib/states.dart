@@ -3,6 +3,7 @@ Methods that involve logic outside of states should be done elsewhere. */
 
 import 'package:flutter/material.dart';
 import 'package:puddle_pirates/battleship.dart';
+import 'package:puddle_pirates/card.dart';
 import 'package:puddle_pirates/deck.dart';
 
 class GameState extends ChangeNotifier {
@@ -27,6 +28,18 @@ class GameState extends ChangeNotifier {
 
   Player get currentPlayer => players[cPlayerIndex];
   Player get opponent => players[1-cPlayerIndex];
+
+  // Hides previous screen, and navigates to screenPath
+  // Switches players. 
+  // Do not notify listeners in here. That will update the grids
+  // before the passing screen is pushed. Listeners are notified in
+  // the passing screen.
+  void toNextPlayer(BuildContext context, String screenPath) {
+    cPlayerIndex = 1 - cPlayerIndex;
+    nextPath = screenPath;
+    attackModifier = null;
+    Navigator.pushNamed(context, '/passing_screen');
+  }
 
   // Avoid using this if possible. This exists for when there's no other way
   // to ensure refresh timing is right and the game doesn't show players' info to opponents.
@@ -108,16 +121,12 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Hides previous screen, and navigates to screenPath
-  // Switches players. 
-  // Do not notify listeners in here. That will update the grids
-  // before the passing screen is pushed. Listeners are notified in
-  // the passing screen.
-  void toNextPlayer(BuildContext context, String screenPath) {
-    cPlayerIndex = 1 - cPlayerIndex;
-    nextPath = screenPath;
-    attackModifier = null;
-    Navigator.pushNamed(context, '/passing_screen');
+  // Overlays grid
+  Widget? customOverlay;
+  void setOverlay(Widget? widget) {
+    customOverlay = widget;
+    print('set');
+    notifyListeners();
   }
 }
 
@@ -127,13 +136,26 @@ class Player extends ChangeNotifier{
   Player({required this.name, required this.hand});
 
   Grid grid = Grid();
-  int money = 1000; //TODO: find a more appropriate word
+  int money = 1000;
+  List<GameCard> infras = [];
 
   bool spend(int amount) {
     if (amount > money) return false;
     money -= amount;
     notifyListeners();
     return true;
+  }
+
+  void addInfrastructure(GameCard card) {
+    if (card.type != CardType.infrastructure) throw Exception('Card Error: $card is not an infrastructure');
+    infras.add(card);
+    notifyListeners();
+  }
+
+  void runAllInfras(BuildContext context) {
+    for (GameCard c in infras) {
+      c.effect!(context);
+    }
   }
 
   void returnLastCardToHand() {

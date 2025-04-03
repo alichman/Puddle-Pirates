@@ -68,7 +68,7 @@ List<Coord>? rebaseCoords(List<Coord> squares, Coord newBase, {Coord? forcedBase
     return null;
   }
 
-  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();;
+  return squares.map<Coord>((s) => s.shift(xOffset, yOffset)).toList();
 }
 
 // Used for selectors based on all grid content.
@@ -248,7 +248,8 @@ class PositionedMarker extends StatelessWidget{
 class BattleshipGrid extends StatelessWidget {
   final bool attackMode;
   final void Function(Coord)? callback;
-  const BattleshipGrid({super.key, this.callback, this.attackMode=false});
+  final Widget? overlay;
+  const BattleshipGrid({super.key, this.callback, this.attackMode=false, this.overlay});
 
   static const gridSize = 10;
 
@@ -312,7 +313,6 @@ class BattleshipGrid extends StatelessWidget {
           selector: (_, grid) => grid._shotsGrid,
           builder: (context, shotGrid, child) {
             final List<Widget> markers = [];
-
             // Iterate over entire grid searching for shots
             for (int x=0; x<10; x++) {
               for (int y=0; y<10; y++) {
@@ -322,10 +322,11 @@ class BattleshipGrid extends StatelessWidget {
                 }
               }
             }
-
             return Stack(children: markers);
           }
-        )
+        ),
+        // Overlay from state
+        if (overlay != null) Center(child: overlay)
       ])));
     }); 
   }

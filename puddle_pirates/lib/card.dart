@@ -54,6 +54,12 @@ class CardWidget extends StatelessWidget {
   final GameCard card;
   final VoidCallback? callback;
   final bool playable;
+  /// skipEffect differs from playable:
+  // Playable is intended to change the UI to show whether or not
+  // a card can be played. It skips over everything on tap.
+  // skipEffect shows the card as if it's playable,
+  // but only calls the callback, not the effect.
+  final bool skipEffect;
 
   /// Requires the GameCard object, its callback function, and your function to remove the card when it is played.
   const CardWidget({
@@ -61,6 +67,7 @@ class CardWidget extends StatelessWidget {
       required this.card,
       this.callback,
       this.playable = true,
+      this.skipEffect = false
     });
 
   @override
@@ -68,7 +75,7 @@ class CardWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!playable) return;
-        card.effect!(context);
+        if(!skipEffect) card.effect!(context);
         if (callback != null) callback!();
       },
       child: Container(

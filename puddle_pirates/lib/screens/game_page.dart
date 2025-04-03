@@ -112,7 +112,12 @@ class GamePageState extends State<GamePage> {
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.95,
                     child: BattleshipGrid(
+                      overlay: gameState.customOverlay,
                       callback: (square) {
+                        print(gameState.customOverlay);
+                        if (gameState.customOverlay != null){
+                          gameState.setOverlay(null);
+                        }
                         gameState.addTarget(square);
                       },
                     ),
@@ -167,11 +172,16 @@ class GamePageState extends State<GamePage> {
                     children: hand.cards.map((card) => CardWidget(
                         card: card,
                         callback: (){
+                          if (card.type == CardType.infrastructure) {
+                            gameState.currentPlayer.addInfrastructure(card);
+                          }
+
                           hand.removeCard(card);
                           gameState.currentPlayer.spend(card.price);
                           gameState.forceRefresh();
                         },
-                        playable: isCardPlayable(card)
+                        playable: isCardPlayable(card),
+                        skipEffect: card.type == CardType.infrastructure,
                     )).toList()
                   ),
               ))),

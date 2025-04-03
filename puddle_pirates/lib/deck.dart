@@ -5,7 +5,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/card.dart';
-import 'package:puddle_pirates/ship.dart';
 import 'package:puddle_pirates/states.dart';
 
 class Deck {
@@ -132,11 +131,30 @@ class Deck {
   }
 
   static void repairCrew(BuildContext context) {
-    print("Repair Crew");
+    final gameState = Provider.of<GameState>(context, listen:false);
+    final grid = gameState.currentPlayer.grid;
+
+    gameState.requestTarget('Select ship',
+    (Coord square) {
+      // Must have a damaged, unsunk ship.
+      final ship = grid.getShipFromSquare(square);
+      if (ship == null || ship.isSunk) return false;
+      return !grid.areSquaresEmpty(ship.getOccupiedSquares(), checkShips: false, checkHits: true);
+    },
+    () {
+      final ship = grid.getShipFromSquare(gameState.targetList[0])!;
+      grid.setHits(ship.getOccupiedSquares(), null);
+    });
   }
 
   static void intelligence(BuildContext context) {
-    print("Intelligence");
+    final gameState = Provider.of<GameState>(context, listen:false);
+    
+    final randomCard = gameState.opponent.hand.getRandomCard();
+    gameState.setOverlay(
+      // TODO: Improve UI when UI MRs are merged
+      randomCard == null ? Text('No cards') :
+        CardWidget(card: randomCard, callback: () => gameState.setOverlay(null)));
   }
 }
 
@@ -149,12 +167,16 @@ class Hand extends ChangeNotifier{
   Hand({required this.sourceDeck});
 
   GameCard? lastRemovedCard;
+  final rand = Random();
 
   // Optional cardName: draw specific card
   void draw({String? cardName, bool refresh=true}) {
     if (cardName != null) {
       cards.add(sourceDeck.give(cardName));
-    } else {
+    } else if (cards.isEmpty){
+      cards.add(sourceDeck.give('Intelligence'));
+    }
+    else {
       cards.add(sourceDeck.draw());
     }
     if (refresh) notifyListeners();
@@ -174,6 +196,11 @@ class Hand extends ChangeNotifier{
     lastRemovedCard = null;
     notifyListeners();
     return cards.last.price;
+  }
+
+  GameCard? getRandomCard() {
+    if (cards.isEmpty) return null;
+    return cards[rand.nextInt(cards.length)];
   }
 
   bool hasPlayableIntercepts(int money) {
