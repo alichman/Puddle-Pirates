@@ -53,6 +53,7 @@ class GamePageState extends State<GamePage> {
         if (gameState.currentPlayer.grid.checkLoss()) {
           Navigator.pushNamed(context, '/game_end_screen');
         }
+        gameState.currentPlayer.runAllInfras(context);
       });
     }
 
@@ -95,7 +96,6 @@ class GamePageState extends State<GamePage> {
                     child: BattleshipGrid(
                       overlay: gameState.customOverlay,
                       callback: (square) {
-                        print(gameState.customOverlay);
                         if (gameState.customOverlay != null){
                           gameState.setOverlay(null);
                         }
