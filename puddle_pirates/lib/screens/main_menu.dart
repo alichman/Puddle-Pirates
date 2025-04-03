@@ -57,18 +57,7 @@ class _MainMenuState extends State<MainMenu> {
                       padding: const EdgeInsets.only(left: 40),
                       child: Text(
                         "Puddle",
-                        style: TextStyle(
-                          fontSize: 82,
-                          fontFamily: "PirateFont",
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 5,
-                              color: Colors.black.withAlpha(180),
-                            ),
-                          ],
-                        ),
+                        style: Theme.of(context).textTheme.displayLarge
                       ),
                     ),
                   ),
@@ -81,18 +70,7 @@ class _MainMenuState extends State<MainMenu> {
                         padding: const EdgeInsets.only(right: 40), // Padding from right side
                         child: Text(
                           "Pirates",
-                          style: TextStyle(
-                            fontSize: 82,
-                            fontFamily: "PirateFont",
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 5,
-                                color: Colors.black.withAlpha(180),
-                              ),
-                            ],
-                          ),
+                          style: Theme.of(context).textTheme.displayLarge
                         ),
                       ),
                     ),

@@ -32,11 +32,7 @@ class PixelButton extends StatelessWidget {
           child: Center(
             child: Text(
               text,
-              style: const TextStyle(
-                fontFamily: "PixelFont",
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium
             ),
           ),
         ),
