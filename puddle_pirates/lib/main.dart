@@ -28,6 +28,37 @@ class PuddlePiratesApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
+
+        textTheme: TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 82,
+            fontFamily: "PirateFont",
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                blurRadius: 5,
+                color: Colors.black.withAlpha(180),
+              ),
+            ],
+          ),
+          bodyMedium:  const TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+          bodySmall:  const TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontWeight: FontWeight.normal,
+          )
+        ),
+        
+        scaffoldBackgroundColor: const Color.fromARGB(255, 21, 108, 178),
+        appBarTheme: AppBarTheme(
+          color: const Color.fromARGB(255, 13, 68, 112),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
       ),
       initialRoute: '/', // Starts at Main Menu
       routes: {

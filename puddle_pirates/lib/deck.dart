@@ -173,10 +173,7 @@ class Hand extends ChangeNotifier{
   void draw({String? cardName, bool refresh=true}) {
     if (cardName != null) {
       cards.add(sourceDeck.give(cardName));
-    } else if (cards.isEmpty){
-      cards.add(sourceDeck.give('Intelligence'));
-    }
-    else {
+    } else {
       cards.add(sourceDeck.draw());
     }
     if (refresh) notifyListeners();

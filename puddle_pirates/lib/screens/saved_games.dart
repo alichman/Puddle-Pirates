@@ -5,7 +5,9 @@ class SavedGamesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Saved Games"),
@@ -47,6 +49,6 @@ class SavedGamesScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
