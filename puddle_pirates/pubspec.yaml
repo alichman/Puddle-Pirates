@@ -56,6 +56,9 @@ flutter:
   assets:
     - assets/cards.json
     - assets/images/oceanMenu.png
+    - assets/images/oceanGameCreation.png
+    - assets/images/player1Pass.png
+    - assets/images/player2Pass.png
     - assets/images/ships/
     - assets/images/backdrops/
     - assets/images/markers/
