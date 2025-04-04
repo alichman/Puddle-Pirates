@@ -10,7 +10,16 @@ class SavedGamesScreen extends StatelessWidget {
       child: Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Saved Games"),
+        title: const Text(
+          "Saved Games",
+          style: TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        /*
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -19,6 +28,7 @@ class SavedGamesScreen extends StatelessWidget {
             },
           ),
         ],
+        */
         leading: IconButton(
           icon: const Icon(Icons.home),
           onPressed: () {

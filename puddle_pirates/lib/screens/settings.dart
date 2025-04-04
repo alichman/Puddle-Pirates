@@ -26,7 +26,7 @@ class SettingsScreen extends StatelessWidget {
               'Settings',
               style: TextStyle(
                 fontSize: 32,
-                fontFamily: 'Cursive',
+                fontFamily: 'PixelFont',
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -34,7 +34,7 @@ class SettingsScreen extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                textStyle: const TextStyle(fontSize: 18, fontFamily: 'Cursive'),
+                textStyle: const TextStyle(fontSize: 18, fontFamily: 'PixelFont'),
               ),
               onPressed: () {
                 Navigator.push(
@@ -50,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                textStyle: const TextStyle(fontSize: 18, fontFamily: 'Cursive'),
+                textStyle: const TextStyle(fontSize: 18, fontFamily: 'PixelFont'),
               ),
               onPressed: () {
                 Navigator.push(
@@ -66,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                textStyle: const TextStyle(fontSize: 18, fontFamily: 'Cursive'),
+                textStyle: const TextStyle(fontSize: 18, fontFamily: 'PixelFont'),
               ),
               onPressed: () {
                 Navigator.pop(context);
