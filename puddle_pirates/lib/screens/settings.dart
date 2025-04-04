@@ -5,7 +5,9 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
         centerTitle: true,
@@ -74,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -97,7 +99,9 @@ class _AudioSettingsScreenState extends State<AudioSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text("Audio Settings"),
         centerTitle: true,
@@ -161,7 +165,7 @@ class _AudioSettingsScreenState extends State<AudioSettingsScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildVolumeSlider(String label, double value, bool enabled, 
@@ -224,7 +228,9 @@ class _VisualSettingsScreenState extends State<VisualSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text("Visual Settings"),
         centerTitle: true,
@@ -314,6 +320,6 @@ class _VisualSettingsScreenState extends State<VisualSettingsScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
