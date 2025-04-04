@@ -186,8 +186,8 @@ class GamePageState extends State<GamePage> {
                         borderRadius: BorderRadius.circular(15),
                       )
                     ),
-                    Positioned(
-                      right: deviceWidth*0.8 * (1- money/1000) + 10, 
+                    if (money >= 100) Positioned(
+                      right: deviceWidth*0.8 * (1- money/1000) + 10 - (money > 100 ? 0 : 100), 
                       top: 5,
                       child: Text('\$$money')
                     )

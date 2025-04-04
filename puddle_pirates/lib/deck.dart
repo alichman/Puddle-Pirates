@@ -142,7 +142,7 @@ class Deck {
       return !grid.areSquaresEmpty(ship.getOccupiedSquares(), checkShips: false, checkHits: true);
     },
     () {
-      final ship = grid.getShipFromSquare(gameState.targetList[0])!;
+      final ship = grid.getShipFromSquare(gameState.targetList.last)!;
       grid.setHits(ship.getOccupiedSquares(), null);
     });
   }

@@ -80,6 +80,7 @@ class GameState extends ChangeNotifier {
     // If requestTarget gets called, this is not the last iteration.
     if(targetPrompt != null) return;
     quickEffect = null;
+    targetList = [];
     notifyListeners();
   }
 
