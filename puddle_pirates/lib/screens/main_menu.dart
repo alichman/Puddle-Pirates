@@ -21,6 +21,7 @@ class _MainMenuState extends State<MainMenu> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
+        /*
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
@@ -29,6 +30,7 @@ class _MainMenuState extends State<MainMenu> {
             },
           ),
         ],
+        */
       ),
       body: Stack(
         children: [

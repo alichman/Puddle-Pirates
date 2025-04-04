@@ -32,6 +32,7 @@ class _GameSetupState extends State<GameSetupPage> {
         centerTitle: true,
         title: Text("Set up - ${gameState.currentPlayer.name}",
         style: Theme.of(context).textTheme.bodyMedium,),
+        /*
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -40,6 +41,7 @@ class _GameSetupState extends State<GameSetupPage> {
             },
           ),
         ],
+        */
         leading: IconButton(
           icon: const Icon(Icons.home),
           onPressed: () {

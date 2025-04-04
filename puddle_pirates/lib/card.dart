@@ -31,6 +31,7 @@ class GameCard {
   final String description;
   final double probability;
   final String callbackString;
+  final String imagePath;
   CardType type;
 
   GameCard({
@@ -41,6 +42,7 @@ class GameCard {
     required this.description,
     required this.probability,
     required this.callbackString,
+    required this.imagePath,
   });
 
   void Function(BuildContext)? effect;
@@ -55,6 +57,7 @@ class GameCard {
       description: json['description'],
       probability: (json['probability'] as num).toDouble(),
       callbackString: json['callback'],
+      imagePath: json['imagePath'],
     );
   }
 }
@@ -99,7 +102,7 @@ class CardWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!playable) return;
-        if(!skipEffect) card.effect!(context);
+        if (!skipEffect) card.effect!(context);
         if (callback != null) callback!();
       },
       child: Container(
@@ -112,15 +115,27 @@ class CardWidget extends StatelessWidget {
           color: playable ? const Color.fromARGB(255, 255, 219, 190) : Colors.grey,
           borderRadius: BorderRadius.circular(8.0),
         ),
-        child: Column(children: [
-          Text(card.name, style: blackTextStyle),
-          Text('\$${card.price}', style: blackTextStyle),
-          Text(card.type.name, style: blackTextStyle),
-          Expanded(child: SizedBox.shrink()),
-          if (detailLevel > 1) Text(card.description,
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black)
-          )
-        ])
+        child: Column(
+          children: [
+            // Display card image
+            if (card.imagePath.isNotEmpty)
+              Image.asset(
+                card.imagePath,
+                height: 100, // Adjust based on layout
+                fit: BoxFit.cover,
+              ),
+            SizedBox(height: 8),
+            Text(card.name, style: blackTextStyle),
+            Text('\$${card.price}', style: blackTextStyle),
+            Text(card.type.name, style: blackTextStyle),
+            Expanded(child: SizedBox.shrink()),
+            if (detailLevel > 1)
+              Text(
+                card.description,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black),
+              ),
+          ],
+        ),
       ),
     );
   }

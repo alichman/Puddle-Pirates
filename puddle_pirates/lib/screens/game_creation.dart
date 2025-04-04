@@ -39,6 +39,7 @@ class GameCreationScreenState extends State<GameCreationScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        /*
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -47,7 +48,8 @@ class GameCreationScreenState extends State<GameCreationScreen> {
               Navigator.pushNamed(context, '/settings');
             },
           ),
-        ],
+        ], 
+        */
         leading: IconButton(
           icon: const Icon(Icons.home),
           color: Colors.white,

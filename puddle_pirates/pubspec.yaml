@@ -62,6 +62,7 @@ flutter:
     - assets/images/ships/
     - assets/images/backdrops/
     - assets/images/markers/
+    - assets/images/cards/
   fonts:
     - family: PirateFont
       fonts:

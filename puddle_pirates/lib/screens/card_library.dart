@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Required for loading assets
 
 class CardLibraryScreen extends StatefulWidget {
   const CardLibraryScreen({super.key});
@@ -9,20 +11,31 @@ class CardLibraryScreen extends StatefulWidget {
 
 class _CardLibraryScreenState extends State<CardLibraryScreen> {
   final TextEditingController _searchController = TextEditingController();
-  int totalCards = 48;
-  String sortOrder = 'Alphabetical';
+  List<Map<String, dynamic>> cards = [];
   int currentPage = 1;
-  int totalPages = 4;
-  
-  // Sample card data
-  final List<Map<String, dynamic>> cards = List.generate(
-    48,
-    (index) => {
-      'id': index + 1,
-      'name': 'Card ${index + 1}',
-      'description': 'Description for card ${index + 1}',
-    },
-  );
+  int cardsPerPage = 4; // Updated for 4 cards per page
+  int totalPages = 1;
+  String sortOrder = 'Alphabetical';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCards();
+  }
+
+  Future<void> _loadCards() async {
+    try {
+      final String response = await rootBundle.loadString('assets/cards.json');
+      final data = json.decode(response);
+
+      setState(() {
+        cards = List<Map<String, dynamic>>.from(data['deck']);
+        totalPages = (cards.length / cardsPerPage).ceil();
+      });
+    } catch (e) {
+      debugPrint("Error loading cards: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -32,11 +45,17 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child:  Scaffold(
+    return Scaffold(
       appBar: AppBar(
-        title: const Text("Card Library"),
+        title: const Text(
+          "Card Library",
+          style: TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.home),
@@ -47,77 +66,45 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Text('Total: $totalCards'),
-                const Spacer(),
-                const Text('Sort by:'),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: sortOrder,
-                  icon: const Icon(Icons.arrow_downward),
-                  onChanged: (String? value) {
-                    if (value != null) {
-                      setState(() {
-                        sortOrder = value;
-                      });
-                    }
-                  },
-                  items: ['Alphabetical', 'Rarity', 'Type', 'Cost'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Search',
-                hintText: 'Enter Text',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(16.0),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 0.7,
+                crossAxisCount: 2,
+                childAspectRatio: 0.8,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
-              itemCount: 16, // Display 16 cards per page (4x4 grid)
+              itemCount: cardsPerPage,
               itemBuilder: (context, index) {
-                final cardIndex = (currentPage - 1) * 16 + index;
+                final cardIndex = (currentPage - 1) * cardsPerPage + index;
                 if (cardIndex >= cards.length) {
                   return Container();
                 }
-                
+
+                final card = cards[cardIndex];
+
                 return InkWell(
-                  onTap: () {
-                    // Show card detail dialog
-                    _showCardDetail(cards[cardIndex]);
-                  },
+                  onTap: () => _showCardDetail(card),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Center(
-                      child: Text(
-                        cards[cardIndex]['name'],
-                        textAlign: TextAlign.center,
-                      ),
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Image.asset(
+                            card['imagePath'], // Load card image
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.image_not_supported, size: 50);
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -155,7 +142,7 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
           ),
         ],
       ),
-    ));
+    );
   }
 
   void _showCardDetail(Map<String, dynamic> card) {
@@ -163,16 +150,34 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(card['name']),
+          backgroundColor: Colors.blue[100], // Light blue background
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Rounded corners
+          ),
+          title: Text(
+            card['name'],
+            style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Divider(),
+              Image.asset(
+                card['imagePath'], // Display card image
+                height: 150,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.image_not_supported, size: 50, color: Colors.blueGrey);
+                },
+              ),
               const SizedBox(height: 8),
-              Text(card['description']),
-              const SizedBox(height: 16),
-              const Text('Card details would be shown here including stats, abilities, etc.'),
+              const Divider(color: Colors.blue), // Blue divider
+              const SizedBox(height: 8),
+              Text(card['description'], style: const TextStyle(color: Colors.black87)),
+              const SizedBox(height: 8),
+              Text("Type: ${card['type']}", style: const TextStyle(color: Colors.blue)),
+              Text("Price: ${card['price']}", style: const TextStyle(color: Colors.blue)),
+              Text("Probability: ${card['probability']}", style: const TextStyle(color: Colors.blue)),
             ],
           ),
           actions: [
@@ -180,11 +185,13 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Close'),
+              child: const Text('Close', style: TextStyle(color: Colors.white)),
+              style: TextButton.styleFrom(backgroundColor: Colors.blue), // Blue button
             ),
           ],
         );
       },
     );
   }
+
 }

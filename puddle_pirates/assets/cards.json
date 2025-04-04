@@ -7,7 +7,8 @@
         "type": "Intercept",
         "description": "Instantly transport a ship to an open area.",
         "probability": 0.231,
-        "callback": "tacticalRepositioning"
+        "callback": "tacticalRepositioning",
+        "imagePath": "assets/images/cards/repositioning.png"
       },
       {
         "id": "2",
@@ -16,7 +17,8 @@
         "type": "Booster",
         "description": "Increase the area of your attack by 2 units in each direction.",
         "probability": 0.231,
-        "callback": "volleyFire"
+        "callback": "volleyFire",
+        "imagePath": "assets/images/cards/volley.png"
       },
       {
         "id": "3",
@@ -25,7 +27,8 @@
         "type": "Deployment",
         "description": "Instantly repair an unsunk ship to full health.",
         "probability": 0.461,
-        "callback": "repairCrew"
+        "callback": "repairCrew",
+        "imagePath": "assets/images/cards/repair.png"
       },
       {
         "id": "4",
@@ -34,7 +37,8 @@
         "type": "Infrastructure",
         "description": "After your draw phase, reveal one of your opponent's cards at random.",
         "probability": 0.077,
-        "callback": "intelligence"
+        "callback": "intelligence",
+        "imagePath": "assets/images/cards/intel.png"
       }
     ]
   }
