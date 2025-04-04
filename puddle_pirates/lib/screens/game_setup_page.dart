@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/ship.dart';
 import 'package:puddle_pirates/states.dart';
+import 'package:puddle_pirates/widgets/pixel_button.dart';
 
 class GameSetupPage extends StatefulWidget {
   const GameSetupPage({super.key});
@@ -24,6 +25,8 @@ class _GameSetupState extends State<GameSetupPage> {
   Widget build(BuildContext context) {
     const shipSize = 45;
     final gameState = context.watch<GameState>();
+    final deviceWidth = MediaQuery.of(context).size.width;
+
     // Ensure game state can navigate
     return PopScope(
       canPop: false,
@@ -48,80 +51,97 @@ class _GameSetupState extends State<GameSetupPage> {
         ),
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Grid
-          ChangeNotifierProvider.value(
-            value: gameState.currentPlayer.grid,
-            child: Expanded(child: 
-              Center(child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.95, // Take up 80% of the screen width.
-                child: BattleshipGrid(callback: (square) {
-                  if (selected == null) {
-                    return;
-                  }
-                  // Try placing ship
-                  try {
-                    gameState.currentPlayer.grid.addShip(ships[selected!], square, isVert);
-                    setState(() {
-                      callbackSuccess = true;
-                      ships.removeAt(selected!);
-                      selected = null;
-                    });
-                  } catch (e) {print(e);}
-                },)
-              )))
-          ),
-          // Ship selector
           Column(
-            children: ships.map((s) => GestureDetector(
-              onTap: () {
-                setState(() => selected = ships.indexOf(s));
-              },
-              child: SizedBox(
-              height: shipSize.toDouble(),
-              width: (shipSize * shipLengthMap[s]!).toDouble(),
-              child: Container(
-                color: ships.indexOf(s) == selected ? const Color.fromARGB(255, 43, 99, 45) : Colors.green,
-                alignment: Alignment.center,
-                margin: EdgeInsets.all(1),
-              )))).toList(),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() => isVert = !isVert);
-              },
-              child: Text(
-                "Rotation - ${isVert ? 'Vertical' : 'Horizontal'}",
-                style: TextStyle(fontSize: 16),
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // Grid
+              ChangeNotifierProvider.value(
+                value: gameState.currentPlayer.grid,
+                child: Center(child: SizedBox(
+                      width: deviceWidth * 0.95,
+                      height: deviceWidth * 0.95,
+                      child: BattleshipGrid(callback: (square) {
+                        if (selected == null) {
+                          return;
+                        }
+                        // Try placing ship
+                        try {
+                          gameState.currentPlayer.grid.addShip(ships[selected!], square, isVert);
+                          setState(() {
+                            callbackSuccess = true;
+                            ships.removeAt(selected!);
+                            selected = null;
+                          });
+                        } catch (e) {print(e);}
+                      },)
+                    ),
+                )
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (ships.isNotEmpty) return;
-                // uses index of cPlayer to check if other player is set up.
-                if (gameState.cPlayerIndex == 0) {
-                  ships = ShipType.values.map((t) => t).toList();
-                  gameState.toNextPlayer(context, '/game_setup');
-                  return;
-                }
-                gameState.toNextPlayer(context, '/game_page');
-              },
-              child: const Text(
-                "Continue",
-                style: TextStyle(fontSize: 16),
+              SizedBox(height: 20),
+              
+              // Ship selector
+              PixelButton(
+                onTap: () {
+                  setState(() => isVert = !isVert);
+                },
+                text: "Rotation - ${isVert ? 'Vertical' : 'Horizontal'}",
+                width: 300
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/game_creation');
-              },
-              child: const Text(
-                "Back to Game Creation",
-                style: TextStyle(fontSize: 16),
+              SizedBox(height: 20,),
+              Column(
+                children: ships.map((s) => GestureDetector(
+                  onTap: () {
+                    setState(() => selected = ships.indexOf(s));
+                  },
+                  child: SizedBox(
+                    height: shipSize.toDouble(),
+                    width: (shipSize * shipLengthMap[s]!).toDouble(),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: ships.indexOf(s) == selected ? const Color.fromARGB(255, 0, 208, 7) : Colors.transparent,
+                        border: Border.all(color: const Color.fromARGB(255, 0, 56, 2), width: 2),
+                        borderRadius: BorderRadius.circular(5)
+                      ),
+                      
+                      alignment: Alignment.center,
+                      margin: EdgeInsets.all(1),
+                      child: Image.asset('assets/images/ships/${s.name}.png')
+                    )
+                  ),
+                )).toList(),
               ),
-            ),
-        ])
+              
+          ]),
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                PixelButton(
+                  color: Colors.red.shade700,
+                  text: "Back to Game Creation",
+                  route: '/game_creation'
+                ),
+                PixelButton(
+                  onTap: () {
+                    if (ships.isNotEmpty) return;
+                    // uses index of cPlayer to check if other player is set up.
+                    if (gameState.cPlayerIndex == 0) {
+                      ships = ShipType.values.map((t) => t).toList();
+                      gameState.toNextPlayer(context, '/game_setup');
+                      return;
+                    }
+                    gameState.toNextPlayer(context, '/game_page');
+                  },
+                  text: "Continue",
+                ),
+              ]),
+              SizedBox(height: 50)
+            ],
+          ),
+      ]),
     ));
   }
 }
