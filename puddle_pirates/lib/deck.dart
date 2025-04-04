@@ -5,7 +5,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
 import 'package:puddle_pirates/card.dart';
-import 'package:puddle_pirates/ship.dart';
 import 'package:puddle_pirates/states.dart';
 
 class Deck {

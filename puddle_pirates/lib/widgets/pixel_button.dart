@@ -15,30 +15,32 @@ class PixelButton extends StatelessWidget {
     this.width = 200,
     this.height = 50,
   });
+  
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: color,
-          border: Border.all(color: Colors.black, width: 3),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 20,
-              fontFamily: "PixelFont",
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+    return Material(
+      color: color,
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, route),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 3),
+          ),      
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontFamily: "PixelFont",
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
-      ),
+      )
     );
   }
 }
