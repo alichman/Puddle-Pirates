@@ -14,7 +14,9 @@ class EndScreen extends StatelessWidget {
     final gameState = context.watch<GameState>();
     final gridSize = min(MediaQuery.of(context).size.width * 0.95, MediaQuery.of(context).size.height * 0.3);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: const Color(0xFF1565C0),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -82,6 +84,6 @@ class EndScreen extends StatelessWidget {
         color: Colors.red.shade700,
         
       ),
-    );
+    ));
   }
 }

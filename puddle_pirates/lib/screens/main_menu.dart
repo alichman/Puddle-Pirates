@@ -13,7 +13,9 @@ class MainMenu extends StatefulWidget {
 class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -129,6 +131,6 @@ class _MainMenuState extends State<MainMenu> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

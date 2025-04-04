@@ -27,7 +27,9 @@ class GameCreationScreenState extends State<GameCreationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Create Game"),
@@ -155,6 +157,6 @@ class GameCreationScreenState extends State<GameCreationScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

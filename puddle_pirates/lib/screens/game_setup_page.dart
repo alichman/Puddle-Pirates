@@ -25,7 +25,9 @@ class _GameSetupState extends State<GameSetupPage> {
     const shipSize = 45;
     final gameState = context.watch<GameState>();
     // Ensure game state can navigate
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: Text("Set up - ${gameState.currentPlayer.name}",
@@ -120,6 +122,6 @@ class _GameSetupState extends State<GameSetupPage> {
               ),
             ),
         ])
-    );
+    ));
   }
 }

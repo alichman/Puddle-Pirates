@@ -70,7 +70,9 @@ class GamePageState extends State<GamePage> {
 
     final deviceWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
         title: Text("${gameState.currentPlayer.name}'s Turn",
         style: Theme.of(context).textTheme.bodyMedium),
@@ -221,6 +223,6 @@ class GamePageState extends State<GamePage> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

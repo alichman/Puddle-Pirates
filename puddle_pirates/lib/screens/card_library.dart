@@ -32,7 +32,9 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child:  Scaffold(
       appBar: AppBar(
         title: const Text("Card Library"),
         centerTitle: true,
@@ -153,7 +155,7 @@ class _CardLibraryScreenState extends State<CardLibraryScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   void _showCardDetail(Map<String, dynamic> card) {
