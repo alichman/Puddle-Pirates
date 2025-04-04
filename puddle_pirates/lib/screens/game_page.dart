@@ -53,6 +53,7 @@ class GamePageState extends State<GamePage> {
         if (gameState.currentPlayer.grid.checkLoss()) {
           Navigator.pushNamed(context, '/game_end_screen');
         }
+        gameState.currentPlayer.runAllInfras(context);
       });
     }
 
@@ -93,7 +94,11 @@ class GamePageState extends State<GamePage> {
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.95,
                     child: BattleshipGrid(
+                      overlay: gameState.customOverlay,
                       callback: (square) {
+                        if (gameState.customOverlay != null){
+                          gameState.setOverlay(null);
+                        }
                         gameState.addTarget(square);
                       },
                     ),
@@ -148,11 +153,16 @@ class GamePageState extends State<GamePage> {
                     children: hand.cards.map((card) => CardWidget(
                         card: card,
                         callback: (){
+                          if (card.type == CardType.infrastructure) {
+                            gameState.currentPlayer.addInfrastructure(card);
+                          }
+
                           hand.removeCard(card);
                           gameState.currentPlayer.spend(card.price);
                           gameState.forceRefresh();
                         },
-                        playable: isCardPlayable(card)
+                        playable: isCardPlayable(card),
+                        skipEffect: card.type == CardType.infrastructure,
                     )).toList()
                   ),
               ))),

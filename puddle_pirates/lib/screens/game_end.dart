@@ -36,9 +36,7 @@ class EndScreen extends StatelessWidget {
               child: SizedBox(
                 width: gridSize,
                 height:gridSize,
-                child: BattleshipGrid(
-                  callback: (Coord unga) => print(unga),
-                ),
+                child: BattleshipGrid(),
               ),
             ),
           ),
@@ -63,9 +61,7 @@ class EndScreen extends StatelessWidget {
               child: SizedBox(
                 width: gridSize,
                 height:gridSize,
-                child: BattleshipGrid(
-                  callback: (Coord unga) => print(unga),
-                ),
+                child: BattleshipGrid(),
               ),
             ),
           ),
