@@ -6,6 +6,16 @@ enum CardType {
   intercept,
   deployment
 }
+extension Name on CardType {
+  String get name {
+    switch (this) {
+      case CardType.intercept: return 'Intercept';
+      case CardType.booster: return 'Booster';
+      case CardType.deployment: return 'Deployment';
+      case CardType.infrastructure: return 'Infrastructure';
+    }
+  }
+}
 
 const stringToCardTypeMap = {
   "Intercept": CardType.intercept,
@@ -49,6 +59,12 @@ class GameCard {
   }
 }
 
+const detailLevelHeightMap = {
+  1: 150.0,
+  2: 250.0,
+  3: 250.0,
+};
+
 /// Visual GameCard Widget, can be clicked/tapped to execute its callback.
 class CardWidget extends StatelessWidget {
   final GameCard card;
@@ -60,6 +76,11 @@ class CardWidget extends StatelessWidget {
   // skipEffect shows the card as if it's playable,
   // but only calls the callback, not the effect.
   final bool skipEffect;
+  // Detail levels:
+  // 1 - Collapsed, Only neccessary info.
+  // 2 - Standard, includes description.
+  // 3 - All displayable information.
+  final int detailLevel;
 
   /// Requires the GameCard object, its callback function, and your function to remove the card when it is played.
   const CardWidget({
@@ -67,11 +88,14 @@ class CardWidget extends StatelessWidget {
       required this.card,
       this.callback,
       this.playable = true,
-      this.skipEffect = false
+      this.skipEffect = false,
+      this.detailLevel = 1,
     });
 
   @override
   Widget build(BuildContext context) {
+    const blackTextStyle = TextStyle(color: Color.fromARGB(255, 26, 13, 0));
+
     return GestureDetector(
       onTap: () {
         if (!playable) return;
@@ -79,14 +103,24 @@ class CardWidget extends StatelessWidget {
         if (callback != null) callback!();
       },
       child: Container(
+        height: detailLevelHeightMap[detailLevel],
+        width: 300,
         margin: EdgeInsets.all(8.0),
         padding: EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
-          color: playable ? Colors.white : Colors.grey,
+          color: playable ? const Color.fromARGB(255, 255, 219, 190) : Colors.grey,
           borderRadius: BorderRadius.circular(8.0),
         ),
-        child: Column(children: [Text(card.name), Text('\$${card.price}')])
+        child: Column(children: [
+          Text(card.name, style: blackTextStyle),
+          Text('\$${card.price}', style: blackTextStyle),
+          Text(card.type.name, style: blackTextStyle),
+          Expanded(child: SizedBox.shrink()),
+          if (detailLevel > 1) Text(card.description,
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.black)
+          )
+        ])
       ),
     );
   }

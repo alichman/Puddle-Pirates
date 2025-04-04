@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:puddle_pirates/battleship.dart';
@@ -197,7 +195,7 @@ class GamePageState extends State<GamePage> {
               // Card Section (Horizontally Scrollable)
               ChangeNotifierProvider.value(value: gameState.currentPlayer.hand, child:
                 Container(
-                  height: 300, // Fixed height for the card section
+                  height: detailLevelHeightMap[gameState.targetPrompt == null ? 2: 1]!,
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Consumer<Hand>(
                     builder:(context, hand, child) => ListView(
@@ -215,6 +213,7 @@ class GamePageState extends State<GamePage> {
                         },
                         playable: isCardPlayable(card),
                         skipEffect: card.type == CardType.infrastructure,
+                        detailLevel: gameState.targetPrompt == null ? 2: 1,
                     )).toList()
                   ),
               ))),
