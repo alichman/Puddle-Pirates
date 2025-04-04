@@ -17,6 +17,7 @@ class PixelButton extends StatelessWidget {
     this.width = 200,
     this.height = 50,
   });
+  
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +47,7 @@ class PixelButton extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      )
     );
   }
 }

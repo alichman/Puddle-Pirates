@@ -30,15 +30,10 @@ class ExitButton extends StatelessWidget {
           color: Colors.red.shade700,
           border: Border.all(color: Colors.black, width: 3),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
             "Exit",
-            style: TextStyle(
-              fontSize: 20,
-              fontFamily: "PixelFont",
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
       ),

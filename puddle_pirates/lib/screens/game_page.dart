@@ -13,28 +13,6 @@ class GamePage extends StatefulWidget {
 }
 
 class GamePageState extends State<GamePage> {
-  void _showWinningPopup(BuildContext context) {
-    final gameState = Provider.of<GameState>(context, listen: false);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Game Over'),
-          content: Text('${gameState.currentPlayer.name} Wins!'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Back to home page'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed('/');
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   bool showAttackGrid = false;
   bool hasAttacked = false;
   bool isInterceptPhase = true;
@@ -71,10 +49,12 @@ class GamePageState extends State<GamePage> {
       gameState.currentPlayer.grid.executeAttack(refresh: false);
       setState(() => isInterceptPhase = false);
 
-      if (gameState.opponent.grid.checkLoss()) {
-        _showWinningPopup(context);
-        return;
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (gameState.currentPlayer.grid.checkLoss()) {
+          Navigator.pushNamed(context, '/game_end_screen');
+        }
+        gameState.currentPlayer.runAllInfras(context);
+      });
     }
 
     // Check for quick effects
@@ -86,11 +66,16 @@ class GamePageState extends State<GamePage> {
         gameState.currentPlayer.money
     )){
       endInterceptPhase();
-    }    
+    }
 
-    return Scaffold(
+    final deviceWidth = MediaQuery.of(context).size.width;
+
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       appBar: AppBar(
-        title: Text("${gameState.currentPlayer.name}'s Turn"),
+        title: Text("${gameState.currentPlayer.name}'s Turn",
+        style: Theme.of(context).textTheme.bodyMedium),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.home),
@@ -106,25 +91,36 @@ class GamePageState extends State<GamePage> {
             children: [
               /// Battleship Grids
               // own grid
-              [Expanded(child: ChangeNotifierProvider.value(
-                value: gameState.currentPlayer.grid,
-                child: Center(
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.95,
+              [SizedBox(
+                height: deviceWidth,
+                width: deviceWidth,
+                child: ChangeNotifierProvider.value(
+                  value: gameState.currentPlayer.grid,
+                  child: Center(
                     child: BattleshipGrid(
+                      overlay: gameState.customOverlay,
                       callback: (square) {
+                        if (gameState.customOverlay != null){
+                          gameState.setOverlay(null);
+                        }
                         gameState.addTarget(square);
                       },
+                      onSwipe: (isRight) {
+                        setState(() => showAttackGrid = true);
+                      }
                     ),
                   ),
-                ),
-              )),
+                )
+              ),
               // opponent grid
-              Expanded(child: ChangeNotifierProvider.value(
+              SizedBox(
+                height: deviceWidth,
+                width: deviceWidth,
+                child: ChangeNotifierProvider.value(
                 value: gameState.opponent.grid,
                 child: Center(
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.95,
+                    width: MediaQuery.of(context).size.width,
                     child: BattleshipGrid(
                       attackMode: true,
                       callback: (square) {
@@ -135,31 +131,73 @@ class GamePageState extends State<GamePage> {
                         }
                         setState(() => hasAttacked = true);
                       },
+                      onSwipe: (isRight) {
+                        setState(() => showAttackGrid = false);
+                      }
                     ),
                   ),
                 ),
               ))][showAttackGrid ? 1:0],
+              Text('Swipe to see ${showAttackGrid ? 'your board' : 'attack board'}',
+                style: Theme.of(context).textTheme.bodySmall,
+               ),
 
-              gameState.quickEffect != null ? FloatingActionButton(
-                onPressed: gameState.cancelQuickEffect,
-                child: const Text( 'Cancel')
-              ):
-              isInterceptPhase ? FloatingActionButton(
-                onPressed:  endInterceptPhase,
-                child: const Text('Done intercept')
-              ): FloatingActionButton(
-                onPressed: () => setState(() => showAttackGrid = !showAttackGrid),
-                child: Text(showAttackGrid ? 'Your grid' : 'Attack grid')
+              SizedBox(height: 20),
+              // Click-to-Confirm Turn
+              GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  if (gameState.quickEffect != null) {
+                    gameState.cancelQuickEffect();
+                  } else if(hasAttacked) {
+                    gameState.toNextPlayer(context, '/game_page');
+                  } else if (isInterceptPhase) {
+                    endInterceptPhase();
+                  } 
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  color: hasAttacked || gameState.quickEffect != null ? const Color.fromARGB(255, 0, 73, 134) : const Color.fromARGB(255, 68, 100, 127),
+                  child: Center(
+                    child: Text(
+                      gameState.targetPrompt ??
+                        (hasAttacked ? 'Click to Confirm Turn':
+                        isInterceptPhase ? 'Skip Intercept' :
+                         'You have not attacked'),
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ),
+                ),
               ),
 
+              // Send everything to bottom
+              Expanded(child: SizedBox.shrink()),
+              // Money bar
               Selector<GameState, int>(
                 selector: (_, g) => g.currentPlayer.money,
-                builder: (context, money, child) => Text('Money: \$$money'), // Would be nice to replace with a horizontal bar
+                builder: (context, money, child) => Stack(
+                  children: [
+                    SizedBox(
+                      height: 30,
+                      width: deviceWidth * 0.8,
+                      child: LinearProgressIndicator(
+                        value: money / 1000,
+                        backgroundColor: const Color.fromARGB(255, 0, 73, 134),
+                        color: const Color.fromARGB(255, 8, 180, 45),
+                        borderRadius: BorderRadius.circular(15),
+                      )
+                    ),
+                    Positioned(
+                      right: deviceWidth*0.8 * (1- money/1000) + 10, 
+                      top: 5,
+                      child: Text('\$$money')
+                    )
+                  ],
+                ), // Would be nice to replace with a horizontal bar
               ),
               // Card Section (Horizontally Scrollable)
               ChangeNotifierProvider.value(value: gameState.currentPlayer.hand, child:
                 Container(
-                  height: 120, // Fixed height for the card section
+                  height: detailLevelHeightMap[gameState.targetPrompt == null ? 2: 1]!,
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Consumer<Hand>(
                     builder:(context, hand, child) => ListView(
@@ -167,45 +205,24 @@ class GamePageState extends State<GamePage> {
                     children: hand.cards.map((card) => CardWidget(
                         card: card,
                         callback: (){
+                          if (card.type == CardType.infrastructure) {
+                            gameState.currentPlayer.addInfrastructure(card);
+                          }
+
                           hand.removeCard(card);
                           gameState.currentPlayer.spend(card.price);
                           gameState.forceRefresh();
                         },
-                        playable: isCardPlayable(card)
+                        playable: isCardPlayable(card),
+                        skipEffect: card.type == CardType.infrastructure,
+                        detailLevel: gameState.targetPrompt == null ? 2: 1,
                     )).toList()
                   ),
               ))),
-              // Click-to-Confirm Turn
-              GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  if(!hasAttacked) return;
-                  gameState.toNextPlayer(context, '/game_page');
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  color: hasAttacked ? Colors.blue : Colors.grey,
-                  child: Center(
-                    child: Text(
-                      gameState.targetPrompt ??
-                        (hasAttacked ? 'Click to Confirm Turn':'You have not attacked'),
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                ),
-              ),
-              // Hidden Button for Testing Winning Screen
-              // TODO: remove when not needed (real win is now achievable)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () => _showWinningPopup(context),
-                  child: const Text("Test Winning Screen"),
-                ),
-              ),
             ],
           ),
         ],
       ),
-    );
+    ));
   }
 }

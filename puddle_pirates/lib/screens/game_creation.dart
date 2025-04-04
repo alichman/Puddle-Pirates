@@ -150,6 +150,6 @@ class GameCreationScreenState extends State<GameCreationScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

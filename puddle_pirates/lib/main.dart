@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:puddle_pirates/screens/game_end.dart';
 import 'package:puddle_pirates/screens/game_setup_page.dart';
 import 'package:puddle_pirates/screens/main_menu.dart';
 import 'package:puddle_pirates/screens/game_creation.dart';
@@ -27,6 +28,37 @@ class PuddlePiratesApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
+
+        textTheme: TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 82,
+            fontFamily: "PirateFont",
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                blurRadius: 5,
+                color: Colors.black.withAlpha(180),
+              ),
+            ],
+          ),
+          bodyMedium:  const TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+          bodySmall:  const TextStyle(
+            fontFamily: "PixelFont",
+            color: Colors.white,
+            fontWeight: FontWeight.normal,
+          )
+        ),
+        
+        scaffoldBackgroundColor: const Color.fromARGB(255, 21, 108, 178),
+        appBarTheme: AppBarTheme(
+          color: const Color.fromARGB(255, 13, 68, 112),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
       ),
       initialRoute: '/', // Starts at Main Menu
       routes: {
@@ -38,6 +70,7 @@ class PuddlePiratesApp extends StatelessWidget {
         '/settings': (context) => const SettingsScreen(),
         '/game_page': (context) => const GamePage(),
         '/passing_screen': (context) => PassingScreen(),
+        '/game_end_screen': (context) => const EndScreen()
       },
     );
   }
