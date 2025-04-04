@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:puddle_pirates/widgets/pixelated_wave.dart';
 import 'package:puddle_pirates/widgets/pixel_button.dart';
+import 'package:provider/provider.dart';
+import 'package:puddle_pirates/states.dart';
 
 class GameCreationScreen extends StatefulWidget {
   const GameCreationScreen({super.key});
@@ -74,7 +76,7 @@ class GameCreationScreenState extends State<GameCreationScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Padding(
-                            padding: EdgeInsets.only(bottom: 100.0),
+                            padding: EdgeInsets.only(bottom: 32.0),
                             child: Text(
                               'Enter Player Names',
                               style: TextStyle(
@@ -115,7 +117,23 @@ class GameCreationScreenState extends State<GameCreationScreen> {
                             padding: const EdgeInsets.all(16.0),
                             child: PixelButton(
                               text: "Start Game",
-                              route: '/game_setup',
+                              // Don't provide a route, only onTap
+                              onTap: () {
+                                final gameState = Provider.of<GameState>(context, listen: false);
+
+                                // Format player names if they are empty
+                                String formatPlayerName(String text, int pNum) {
+                                  if (text.isEmpty) return 'Player #$pNum';
+                                  return text;
+                                }
+
+                                // Set the players in the game state
+                                gameState.setNewPlayers(
+                                  formatPlayerName(_player1Controller.text, 1),
+                                  formatPlayerName(_player2Controller.text, 2),
+                                );
+                                Navigator.pushNamed(context, '/game_setup');
+                              },
                               color: Colors.blue,
                               width: 220,
                               height: 60,

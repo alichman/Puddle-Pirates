@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 
 class PixelButton extends StatelessWidget {
   final String text;
-  final String route;
+  final String? route; // Make route optional
   final Color color;
   final double width;
   final double height;
+  final VoidCallback? onTap; // Add onTap callback
 
   const PixelButton({
     super.key,
     required this.text,
-    required this.route,
+    this.route,
+    this.onTap,
     this.color = const Color(0xFF1565C0),
     this.width = 200,
     this.height = 50,
@@ -19,7 +21,13 @@ class PixelButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
+      onTap: () {
+        if (onTap != null) {
+          onTap!();
+        } else if (route != null) {
+          Navigator.pushNamed(context, route!);
+        }
+      },
       child: Container(
         width: width,
         height: height,
